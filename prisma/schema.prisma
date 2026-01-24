@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SeatHold {
+  id        String   @id
+  seatCode  String
+  slotId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([seatCode, slotId])
+}
+
+model concert_shows {
+  date            String
+  time            String
+  location        String
+  seats           Int
+  concert_id      String            @db.Uuid
+  id              String            @id @db.Uuid
+  concerts        concerts          @relation(fields: [concert_id], references: [id])
+  concert_tickets concert_tickets[]
+}
+
+model concert_tickets {
+  id              String        @id
+  amount          Float
+  seats           Int
+  user_id         String        @db.Uuid
+  concert_show_id String        @db.Uuid
+  status          String?       @default("verified")
+  concert_shows   concert_shows @relation(fields: [concert_show_id], references: [id])
+  users           users         @relation(fields: [user_id], references: [id])
+}
+
+model concerts {
+  title         String          @unique
+  description   String
+  ageRating     String
+  seats         Int
+  cost          Float
+  duration      Int
+  languages     String[]
+  genres        String[]
+  image         String
+  vendor_id     String          @db.Uuid
+  createdAt     DateTime        @default(now())
+  id            String          @id @db.Uuid
+  end_date      String
+  start_date    String
+  concert_shows concert_shows[]
+  users         users           @relation(fields: [vendor_id], references: [id])
+}
+
+model contact {
+  id              String  @id @db.Uuid
+  bio             String?
+  gender          String?
+  date_of_birth   String?
+  mobile_no       String?
+  emergency_email String?
+  address         String?
+  profile_pic     String?
+  users           users   @relation(fields: [id], references: [id])
+}
+
+model movies {
+  id          String     @id @db.Uuid
+  title       String     @unique
+  description String
+  ageRating   String
+  genres      String[]
+  image       String
+  duration    Int
+  vendor_id   String     @db.Uuid
+  createdAt   DateTime   @default(now())
+  commission  Float
+  users       users      @relation(fields: [vendor_id], references: [id])
+  shows       shows[]
+  theatres    theatres[]
+}
+
+model shows {
+  date         String
+  cost         Float
+  premium_cost Float
+  theatre_id   String    @db.Uuid
+  movie_id     String    @db.Uuid
+  language     String
+  seats        Json
+  time         String
+  id           String    @id @db.Uuid
+  movies       movies    @relation(fields: [movie_id], references: [id])
+  theatres     theatres  @relation(fields: [theatre_id], references: [id])
+  tickets      tickets[]
+}
+
+model stations {
+  id   Int    @id @default(autoincrement())
+  name String
+  code String
+}
+
+model theatres {
+  location   String
+  movie_id   String  @db.Uuid
+  seatLayout Json
+  vendor_id  String  @db.Uuid
+  id         String  @id @db.Uuid
+  shows      shows[]
+  movies     movies  @relation(fields: [movie_id], references: [id])
+  users      users   @relation(fields: [vendor_id], references: [id])
+}
+
+model tickets {
+  id      String   @id
+  amount  Float
+  seats   String[]
+  user_id String   @db.Uuid
+  show_id String   @db.Uuid
+  status  String?  @default("verified")
+  shows   shows    @relation(fields: [show_id], references: [id])
+  users   users    @relation(fields: [user_id], references: [id])
+}
+
+model train_tickets {
+  id           String   @id
+  amount       Float
+  seats        String[]
+  passengers   Json
+  user_id      String   @db.Uuid
+  train_id     String   @db.Uuid
+  from_station Json
+  to_station   Json
+  status       String?  @default("verified")
+  trains       trains   @relation(fields: [train_id], references: [id])
+  users        users    @relation(fields: [user_id], references: [id])
+}
+
+model trains {
+  title         String
+  train_id      Int
+  compartments  Int
+  additional    Float
+  stations      Json
+  seatLayout    Json
+  vendor_id     String          @db.Uuid
+  createdAt     DateTime        @default(now())
+  id            String          @id @db.Uuid
+  train_tickets train_tickets[]
+  users         users           @relation(fields: [vendor_id], references: [id])
+}
+
+model users {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String            @unique @db.VarChar(255)
+  password        String?
+  name            String?           @db.VarChar(100)
+  role            String            @db.VarChar(20)
+  balance         Decimal?          @default(1000) @db.Decimal
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  google_id       String?
+  concert_tickets concert_tickets[]
+  concerts        concerts[]
+  contact         contact?
+  movies          movies[]
+  theatres        theatres[]
+  tickets         tickets[]
+  train_tickets   train_tickets[]
+  trains          trains[]
+}
