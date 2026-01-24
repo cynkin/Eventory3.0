@@ -5,7 +5,6 @@ import Link from "next/link";
 import {UserRound, ChevronRight, Settings, Tickets, MessageCircleQuestion} from "lucide-react";
 import { usePathname } from 'next/navigation'
 
-
 function capitalize(str: string) {
     if (!str) return "";
     str = str.split(" ")[0];
