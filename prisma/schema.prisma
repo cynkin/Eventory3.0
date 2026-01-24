@@ -164,6 +164,7 @@ model users {
   name            String?           @db.VarChar(100)
   role            String            @db.VarChar(20)
   balance         Decimal?          @default(1000) @db.Decimal
+  pic             String?
   created_at      DateTime?         @default(now()) @db.Timestamp(6)
   google_id       String?
   concert_tickets concert_tickets[]

@@ -6,6 +6,7 @@ declare module "next-auth" {
         id: string;
         role: string;
         balance: Decimal;
+        pic: string | null;
         isGoogle: boolean;
     }
 
@@ -14,6 +15,7 @@ declare module "next-auth" {
             id: string;
             role: string;
             balance: Decimal;
+            pic: string | null;
             isGoogle: boolean;
         } & DefaultSession["user"];
     }
@@ -24,6 +26,7 @@ declare module "next-auth/jwt" {
         id: string;
         role: string;
         balance: Decimal;
+        pic: string | null;
         isGoogle: boolean;
     }
 }

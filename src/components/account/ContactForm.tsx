@@ -5,7 +5,7 @@ import {useSession} from "next-auth/react";
 import Spinner from "@/components/ui/Spinner";
 import {notFound, useRouter} from "next/navigation";
 import {updateContact} from "@/server-components/account/updateContact";
-import {RemoveSearchParam} from "@/components/functionality/RemoveParams";
+import {useRemoveSearchParam} from "@/components/hooks/RemoveParams";
 
 type Data ={
     name: string | null | undefined;
@@ -84,7 +84,7 @@ export default function ContactForm({data} :{data : Data}) {
             console.log(err);
         }
         finally{
-            RemoveSearchParam("edit");
+            useRemoveSearchParam("edit");
         }
     }
 

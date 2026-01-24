@@ -5,7 +5,7 @@ import { CircleUserRound, Pencil } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Spinner from "@/components/ui/Spinner";
 
-const style = "hover:cursor-pointer text-[#222] flex flex-row items-center text-md tracking-wider font-extrabold my-8 ml-4 mr-8 hover:text-[#1568e3]"
+const style = "hover:cursor-pointer text-[#222] flex flex-row items-center text-md tracking-wider font-extrabold my-5 ml-4 mr-8 hover:text-[#1568e3]"
 
 function capitalize(str: string) {
     if (!str) return "";
@@ -15,14 +15,12 @@ function capitalize(str: string) {
 
 export default function Profile() {
     const { data: session, status } = useSession();
-
     console.log(status, session);
 
     const [showEventDropdown, setShowEventDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const eventRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
-    const [pic, setPic] = useState("");
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -81,12 +79,11 @@ export default function Profile() {
                             className={`${style} focus:outline-none`}
                             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                         >
-
-                            {pic !== ""
+                            {session.user.pic !== ""
                                 ?
                                 <div className="rounded-full border-2 w-12 h-12 mr-2 relative overflow-hidden">
                                     <img alt="" className="scale-100 overflow-hidden transition-all ease-in-out duration-300"  style={{ objectFit:"cover", objectPosition: "center"}}
-                                         src={pic}  />
+                                         src={session.user.pic!}  />
                                 </div>
                                 :
                                 <CircleUserRound className="mr-2" />
@@ -96,11 +93,11 @@ export default function Profile() {
 
                         {showProfileDropdown && (
                             <div className="absolute right-0 w-90 bg-white border rounded-lg shadow-lg z-10 pb-3">
-                                {pic !== "" ?
+                                {session.user.pic !== "" ?
                                     <div className="flex justify-center m-2">
                                         <div className="rounded-full border-2 w-30 h-30 my-2 relative overflow-hidden">
                                             <img alt="" className="scale-100 overflow-hidden transition-all ease-in-out duration-300"  style={{ objectFit:"cover", objectPosition: "center"}}
-                                                 src={pic}  />
+                                                 src={session.user.pic!}  />
                                         </div>
                                     </div>
                                     :

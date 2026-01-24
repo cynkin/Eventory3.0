@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {useState} from "react";
 import Spinner from "@/components/ui/Spinner";
 import {updateProfile} from "@/server-components/account/updateProfile";
-import {RemoveSearchParam} from "../functionality/RemoveParams"
+import {useRemoveSearchParam} from "@/components/hooks/RemoveParams"
 
 type Data ={
     name: string | null | undefined;
@@ -112,13 +112,14 @@ export default function ProfileForm({data} : {data : Data}) {
             bio: data.bio || undefined,
             gender: data.gender || undefined,
             dob : date_of_birth,
-            profile_pic: data.image || undefined,
+            pic: data.image || undefined,
         }
         try {
             const res = await updateProfile(obj);
             await update({
                 user:{
                     name: data.name,
+                    pic : data.image || null,
                 }
             })
             console.log("Profile updated successfully");
@@ -131,7 +132,7 @@ export default function ProfileForm({data} : {data : Data}) {
         }
         finally {
             setLoading(false);
-            RemoveSearchParam("edit");
+            useRemoveSearchParam("edit");
         }
     }
 

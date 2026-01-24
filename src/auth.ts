@@ -52,6 +52,7 @@ export const {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    pic : user.pic,
                     balance: Number(user.balance),
                     isGoogle: false,
                 };
@@ -77,10 +78,10 @@ export const {
 
     callbacks: {
         async jwt({ token, user, account, trigger }) {
-            // Credentials login
             if (user && account?.provider === "credentials") {
                 token.id = user.id;
                 token.role = user.role;
+                token.pic = user.pic;
                 token.balance = user.balance;
                 token.isGoogle = false;
             }
@@ -93,6 +94,7 @@ export const {
                 if(user){
                     token.name = user.name;
                     token.balance = user.balance;
+                    token.pic = user.pic;
                 }
             }
             return token;
@@ -103,6 +105,7 @@ export const {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
                 session.user.balance = token.balance as number;
+                session.user.pic = token.pic as string;
                 session.user.isGoogle = token.isGoogle as boolean;
             }
             return session;
