@@ -66,7 +66,6 @@ model contact {
   mobile_no       String?
   emergency_email String?
   address         String?
-  profile_pic     String?
   users           users   @relation(fields: [id], references: [id])
 }
 
@@ -164,9 +163,9 @@ model users {
   name            String?           @db.VarChar(100)
   role            String            @db.VarChar(20)
   balance         Decimal?          @default(1000) @db.Decimal
-  pic             String?
   created_at      DateTime?         @default(now()) @db.Timestamp(6)
   google_id       String?
+  pic             String?
   concert_tickets concert_tickets[]
   concerts        concerts[]
   contact         contact?

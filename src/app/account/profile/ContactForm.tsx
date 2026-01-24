@@ -5,19 +5,19 @@ import {useSession} from "next-auth/react";
 import Spinner from "@/components/ui/Spinner";
 import {notFound, useRouter} from "next/navigation";
 import {updateContact} from "@/server-components/account/updateContact";
-import {useRemoveSearchParam} from "@/components/hooks/RemoveParams";
+import {useRemoveSearchParams} from "@/components/hooks/useRemoveSearchParams";
 
 type Data ={
     name: string | null | undefined;
     email: string | null | undefined;
     role: string | undefined;
-    balance: number | undefined;
+    profile_pic: string | null | undefined;
+    balance: any;
     bio: string;
     gender: string | null;
     dob: string | null;
     mobile_no: string | null;
     address: string | null;
-    profile_pic: string | null;
 }
 
 const formSchema = z.object({
@@ -50,7 +50,7 @@ type FormData = z.infer<typeof formSchema>;
 const style = "w-full focus:outline-none focus:ring-[1.7px] focus:ring-gray-900 focus:placeholder:text-gray-700 border py-3 px-3 mt-1 rounded-xl"
 
 export default function ContactForm({data} :{data : Data}) {
-    const router = useRouter();
+    const rmParam = useRemoveSearchParams();
     const { data: session, status} = useSession();
 
     const methods = useForm<FormData>({
@@ -84,7 +84,7 @@ export default function ContactForm({data} :{data : Data}) {
             console.log(err);
         }
         finally{
-            useRemoveSearchParam("edit");
+            rmParam("edit");
         }
     }
 

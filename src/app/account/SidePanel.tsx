@@ -4,7 +4,7 @@ import Spinner from "@/components/ui/Spinner";
 import Link from "next/link";
 import {UserRound, ChevronRight, Settings, Tickets, MessageCircleQuestion} from "lucide-react";
 import { usePathname } from 'next/navigation'
-import {useEffect, useState} from "react";
+
 
 function capitalize(str: string) {
     if (!str) return "";
@@ -14,27 +14,8 @@ function capitalize(str: string) {
 
 export default function SidePanel() {
     const pathname = usePathname();
-    const { data: session, status, update } = useSession();
-    const [balance, setBalance] = useState(0);
+    const {data: session, status} = useSession();
 
-    // useEffect(() => {
-    //
-    //     async function getBalance() {
-    //         const user = await getUser(session?.user?.id || "");
-    //         const balance = user?.balance || 0;
-    //         setBalance(balance);
-    //
-    //         // await update({
-    //         //     user:{
-    //         //         balance: user?.balance || 0,
-    //         //     }
-    //         // })
-    //     }
-    //     if(session) getBalance();
-    //
-    // }, [session,]);
-
-    console.log("balance", balance);
     if(status === "loading") return(<Spinner/>)
     if(!session) return;
 
@@ -54,7 +35,7 @@ export default function SidePanel() {
                 </span>
                 <div className="mt-4 mb-1 text-sm font-[500]">Current Credits</div>
                 <div className="text-2xl text-center font-extrabold">
-                    &#8377; {balance}
+                    &#8377; {session.user.balance}
                 </div>
             </div>
             <Link href="/account/profile" className={`p-3 ${pathname.endsWith("/profile") ? "border-2 border-blue-600" : " border border-gray-300"} flex items-center justify-between text-left rounded-xl mt-9`}>

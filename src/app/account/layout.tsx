@@ -2,7 +2,7 @@
 import Header from "@/components/main/Header";
 import Footer from "@/components/main/Footer";
 import {SessionProvider} from "next-auth/react";
-import SidePanel from "@/components/account/SidePanel";
+import SidePanel from "./SidePanel";
 import {useSearchParams} from "next/navigation";
 
 export default function MainLayout({

@@ -1,20 +1,20 @@
 'use client'
 import {useSearchParams} from "next/navigation";
 import Link from "next/link";
-import ProfileForm from "@/components/account/ProfileForm";
-import ContactForm from "@/components/account/ContactForm";
+import ProfileForm from "./ProfileForm"
+import ContactForm from "./ContactForm";
 
 type Data ={
     name: string | null | undefined;
     email: string | null | undefined;
     role: string | undefined;
-    balance: number | undefined;
+    profile_pic: string | null | undefined;
+    balance: any;
     bio: string;
     gender: string | null;
     dob: string | null;
     mobile_no: string | null;
     address: string | null;
-    profile_pic: string | null;
 }
 
 function capitalize(str: string) {

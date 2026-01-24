@@ -7,19 +7,19 @@ import { useRouter } from 'next/navigation';
 import {useState} from "react";
 import Spinner from "@/components/ui/Spinner";
 import {updateProfile} from "@/server-components/account/updateProfile";
-import {useRemoveSearchParam} from "@/components/hooks/RemoveParams"
+import {useRemoveSearchParams} from "@/components/hooks/useRemoveSearchParams"
 
 type Data ={
     name: string | null | undefined;
     email: string | null | undefined;
     role: string | undefined;
-    balance: number | undefined;
+    profile_pic: string | null | undefined;
+    balance: any;
     bio: string;
     gender: string | null;
     dob: string | null;
     mobile_no: string | null;
     address: string | null;
-    profile_pic: string | null;
 }
 
 function isLeapYear(year: number): boolean {
@@ -79,7 +79,7 @@ const style = "w-full focus:outline-none focus:ring-[1.7px] focus:ring-gray-900 
 
 export default function ProfileForm({data} : {data : Data}) {
     const { data: session, status, update } = useSession();
-    const router = useRouter();
+    const rmParam = useRemoveSearchParams();
     const [loading, setLoading] = useState(false);
 
     const {day, month, year} = extractDate(data.dob);
@@ -132,7 +132,7 @@ export default function ProfileForm({data} : {data : Data}) {
         }
         finally {
             setLoading(false);
-            useRemoveSearchParam("edit");
+            rmParam("edit");
         }
     }
 

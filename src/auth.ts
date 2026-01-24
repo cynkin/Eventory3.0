@@ -82,19 +82,19 @@ export const {
                 token.id = user.id;
                 token.role = user.role;
                 token.pic = user.pic;
-                token.balance = user.balance;
+                token.balance = Number(user.balance) ;
                 token.isGoogle = false;
             }
 
             if(trigger === "update"){
-                const user = await prisma.users.findUnique({
+                const updated_user = await prisma.users.findUnique({
                     where: {id: token.id}
                 });
 
-                if(user){
-                    token.name = user.name;
-                    token.balance = user.balance;
-                    token.pic = user.pic;
+                if(updated_user){
+                    token.name = updated_user.name;
+                    token.balance = Number(updated_user.balance);
+                    token.pic = updated_user.pic;
                 }
             }
             return token;
