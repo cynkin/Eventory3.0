@@ -2,6 +2,7 @@
 import { cookies } from "next/headers";
 import { signIn } from "@/auth";
 import {redirect} from "next/navigation";
+import { AuthError } from "next-auth";
 
 export async function verifyPassword(password: string) {
     const cookieStore = await cookies();
@@ -12,14 +13,19 @@ export async function verifyPassword(password: string) {
         redirect("/auth/email");
     }
 
-    const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-    });
-
-    if(res?.error){
-        return {error: "Invalid email or password"};
+    try{
+        await signIn("credentials", {
+            email,
+            password,
+            redirect: false,
+        });
+    } catch(err){
+        if (err instanceof AuthError) {
+            if (err.type === "CredentialsSignin") {
+                return { error: "Invalid email or password" };
+            }
+        }
+        throw err; // unknown error
     }
 
     cookieStore.delete({

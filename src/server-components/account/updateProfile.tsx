@@ -11,7 +11,7 @@ type profile = {
     gender? : string,
     emergency_email? : string,
     address? : string,
-    profile_pic? : string,
+    pic? : string,
 }
 
 export async function updateProfile(data: profile) {
@@ -23,6 +23,7 @@ export async function updateProfile(data: profile) {
             where : {id : session.user.id},
             data: {
                 name: data.name,
+                pic : data.pic,
 
                 contact :{
                     update:{
@@ -32,7 +33,6 @@ export async function updateProfile(data: profile) {
                         mobile_no: data.mobile_no,
                         emergency_email: data.emergency_email,
                         address: data.address,
-                        profile_pic: data.profile_pic,
                     }
                 }
             }
