@@ -3,7 +3,6 @@ import {FormProvider, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useSession} from "next-auth/react";
 import {notFound} from "next/navigation";
-import { useRouter } from 'next/navigation';
 import {useState} from "react";
 import Spinner from "@/components/ui/Spinner";
 import {updateProfile} from "@/server-components/account/updateProfile";

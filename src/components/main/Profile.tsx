@@ -15,7 +15,7 @@ function capitalize(str: string) {
 
 export default function Profile() {
     const { data: session, status } = useSession();
-    console.log(status, session);
+    //console.log(status, session);
 
     const [showEventDropdown, setShowEventDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
