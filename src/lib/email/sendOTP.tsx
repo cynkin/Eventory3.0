@@ -4,19 +4,27 @@ import {sendOTPLimiter} from "@/lib/utils/ratelimit";
 import { headers } from "next/headers";
 import {sendEmail} from "@/lib/email/send-email";
 import {auth} from "@/auth";
-import crypto from "crypto";
 import {generateOTP, hashOTP} from "@/lib/utils/hash";
 
-export const sendOTP = async () => {
-    const session = await auth();
-    if(!session) throw new Error("Unauthorized");
+type OTPPurpose = "CHANGE_PASSWORD" | "VERIFY_EMAIL";
 
-    console.log(session);
-    const email = session.user.email;
-    if(!email) throw new Error("Unauthorized");
+export const sendOTP = async ({purpose, passed_email}:{purpose :OTPPurpose, passed_email?: string}) => {
+    let email;
+    if(purpose == "CHANGE_PASSWORD"){
+        const session = await auth();
+        if(!session) throw new Error("Unauthorized");
+        console.log(session);
+        email = session.user.email;
+    }
+    else if(purpose == "VERIFY_EMAIL"){
+        if(!passed_email) throw new Error("Email is required");
+        email = passed_email;
+    }
+
+    if(!email) throw new Error("Email not provided");
 
     const emailLimit = await sendOTPLimiter.limit(
-        `otp:send:email:${email}`
+        `otp:send:${purpose}:${email}`
     );
     if (!emailLimit.success) {
         throw new Error("Too many OTP requests. Please try again later.");
@@ -34,7 +42,7 @@ export const sendOTP = async () => {
 
     const otp = generateOTP();
     await redis.set(
-        `otp:code:change-password:${email}`,
+        `otp:code:${purpose}:${email}`,
         hashOTP(otp),
         { ex: 300 } // 5 min
     );
@@ -42,7 +50,7 @@ export const sendOTP = async () => {
     console.log(otp);
     const subject = 'OTP for Eventory';
     const text =
-    `Hi,
+        `Hi,
     For your security, don't share this code.
     Your secure code is
     ${otp}

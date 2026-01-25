@@ -1,14 +1,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import RegisterForm from "./RegisterForm"
+import VerifyEmailPage from "./VerifyEmailPage";
 
 export default async function CreatePasswordPage() {
     const cookieStore = await cookies();
     const step = cookieStore.get("step")?.value;
     const email = cookieStore.get("email")?.value;
 
-    if (step !== "VERIFIED_EMAIL" || !email) {
+    if (step !== "EMAIL-CHECK" || !email) {
         redirect("/auth/email");
     }
-    return <RegisterForm email={email}/>
+    return <VerifyEmailPage email={email}/>
 }

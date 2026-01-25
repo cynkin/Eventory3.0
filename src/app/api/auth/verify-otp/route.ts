@@ -5,18 +5,39 @@ const MAX_ATTEMPTS = 5;
 const OTP_TTL_SECONDS = 300;
 import {auth} from "@/auth";
 
+type OTPPurpose =
+    | "CHANGE_PASSWORD"
+    | "VERIFY_EMAIL";
+
+
 export async function POST(req: NextRequest) {
     try {
-        const {otp} = await req.json();
-        const session = await auth();
-        const email = session?.user.email;
-        console.log("Email", email, otp);
-
-        if (!email || !otp || otp.length !== 6) {
+        const {otp, purpose, passed_email} = await req.json();
+        console.log("API ROUTE:", otp, purpose, passed_email);
+        if (!purpose || !otp || otp.length !== 6) {
             return NextResponse.json({ error: "Missing data/Invalid OTP" }, { status: 400 });
         }
-        const otpKey = `otp:code:change-password:${email}`;
-        const attemptsKey = `otp:attempts:${email}`;
+
+        let email;
+        if(purpose === "CHANGE_PASSWORD") {
+            const session = await auth();
+            if (!session?.user?.email) {
+                return NextResponse.json(
+                    { error: "Unauthorized" },
+                    { status: 401 }
+                );
+            }
+            email = session.user.email;
+            console.log("Email", email, otp);
+        }
+        else if(purpose === "VERIFY_EMAIL"){
+            if(!passed_email) throw new Error("Missing email address");
+
+            email = passed_email;
+        }
+
+        const otpKey = `otp:code:${purpose}:${email}`;
+        const attemptsKey = `otp:attempts:${purpose}:${email}`;
 
         const [hashedOTP, attempts] = await Promise.all([
             redis.get<string>(otpKey),
@@ -50,6 +71,13 @@ export async function POST(req: NextRequest) {
             );
         }
         await redis.del(otpKey, attemptsKey);
+        if(purpose === "CHANGE_PASSWORD"){
+            await redis.set(
+                `otp:verified:CHANGE_PASSWORD:${email}`,
+                "true",
+                {ex : 300}
+            );
+        }
         return NextResponse.json({ success: true});
     } catch (err) {
         console.error("Error sending OTP:", err);

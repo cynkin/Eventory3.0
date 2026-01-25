@@ -21,12 +21,12 @@ export async function checkEmail(email: string) {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: 'strict',
-        maxAge: 300, // 5 minutes
+        maxAge: 600, // 10 minutes
         path :"/auth"
     });
 
     if(!user){
-        redirect("/auth/register");
+        redirect("/auth/verify-email");
     }
     redirect("/auth/check-password");
 }

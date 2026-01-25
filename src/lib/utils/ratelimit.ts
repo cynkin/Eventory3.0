@@ -3,7 +3,7 @@ import { redis } from "../db"
 
 export const sendOTPLimiter = new Ratelimit({
     redis,
-    limiter : Ratelimit.slidingWindow(3, "10 m")
+    limiter : Ratelimit.slidingWindow(10, "10 m")
 })
 
 export const verifyOTPLimiter = new Ratelimit({

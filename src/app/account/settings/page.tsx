@@ -23,7 +23,7 @@ export default function SecurityPage() {
                         </div>
                         <ChevronRight className=""/>
                     </Link>
-                    <Link href="/auth/change-password" className="flex mt-4 items-center border rounded-xl p-3 border-gray-300 w-fit">
+                    <Link href="/auth/verify-change-password" className="flex mt-4 items-center border rounded-xl p-3 border-gray-300 w-fit">
                         <div className="w-96 py-2 px-2 font-medium">Change Password</div>
                         <ChevronRight className=""/>
                     </Link>
