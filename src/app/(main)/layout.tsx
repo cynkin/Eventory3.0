@@ -11,8 +11,8 @@ export default function MainLayout({
     <>
         <SessionProvider>
             <Header />
-        </SessionProvider>
             <main className="flex-grow">{children}</main>
+        </SessionProvider>
         <Footer />
     </>
     )
