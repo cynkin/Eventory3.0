@@ -225,8 +225,8 @@ export default function ProfileForm({data} : {data : Data}) {
                                     </div>
                                     {imageUrl && (
                                         <div className="rounded-full border-2 mt-5 w-40 h-40 relative overflow-hidden">
-                                            <img alt="" className="scale-100 overflow-hidden transition-all ease-in-out duration-300"  style={{ objectFit:"cover", objectPosition: "center"}}
-                                                 src={imageUrl}  />
+                                            <img alt="" className="w-full h-full object-cover object-center scale-100 overflow-hidden transition-all ease-in-out duration-300"
+                                                 src={session.user.pic!}  />
                                         </div>
                                     )}
                                 </div>

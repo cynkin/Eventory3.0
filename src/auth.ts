@@ -2,8 +2,6 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-
 import prisma from "@/lib/db";
 import { comparePassword } from "@/lib/utils/hash";
 
@@ -13,7 +11,6 @@ export const {
     signIn,
     signOut,
 } = NextAuth({
-    adapter: PrismaAdapter(prisma),
 
     providers: [
         // -----------------------------
@@ -77,13 +74,66 @@ export const {
     },
 
     callbacks: {
+        async signIn({ user, account, profile}) {
+            try {
+                if (account?.provider === "google") {
+                    if (!user.email) return false;
+
+                    const existingUser = await prisma.users.findUnique({
+                        where: {email: user.email},
+                    });
+                    console.log("Signin Google", user)
+                    if (!existingUser) {
+                        await prisma.users.create({
+                            data: {
+                                email: user.email,
+                                name: user.name,
+                                pic: user.image,
+                                role: "user",
+                                balance: 1000,
+                                google_id: profile?.sub,
+                                contact:{
+                                    create: {},
+                                }
+                            },
+                        });
+                    }
+
+                    return true;
+                }
+            } catch (err){
+                console.error("Google sign-in failed:", err);
+                return false;
+            }
+            return true;
+        },
+
         async jwt({ token, user, account, trigger }) {
-            if (user && account?.provider === "credentials") {
-                token.id = user.id;
-                token.role = user.role;
-                token.pic = user.pic;
-                token.balance = Number(user.balance) ;
-                token.isGoogle = false;
+            if (user) {
+                if (account?.provider === "credentials") {
+                    token.id = user.id;
+                    token.name = user.name;
+                    token.email = user.email;
+                    token.role = user.role;
+                    token.pic = user.pic;
+                    token.balance = Number(user.balance);
+                    token.isGoogle = false;
+                }
+                if (account?.provider === "google" && user?.email) {
+                    const dbUser = await prisma.users.findUnique({
+                        where: { email: user.email},
+                    });
+
+                    if (dbUser) {
+                        token.id = dbUser.id;
+                        token.name = dbUser.name
+                        token.email = dbUser.email;
+                        token.role = dbUser.role;
+                        token.balance = Number(dbUser.balance);
+                        token.pic = dbUser.pic;
+                        token.isGoogle = true;
+                    }
+                }
             }
 
             if(trigger === "update"){
@@ -103,6 +153,8 @@ export const {
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id as string;
+                session.user.name = token.name as string;
+                session.user.email = token.email as string;
                 session.user.role = token.role as string;
                 session.user.balance = token.balance as number;
                 session.user.pic = token.pic as string;

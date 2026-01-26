@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { CircleUserRound, Pencil } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import Spinner from "@/components/ui/Spinner";
 
 const style = "hover:cursor-pointer text-[#222] flex flex-row items-center text-md tracking-wider font-extrabold my-5 ml-4 mr-8 hover:text-[#1568e3]"
 
@@ -16,7 +15,7 @@ function capitalize(str: string) {
 export default function Profile() {
     const { data: session, status } = useSession();
     //console.log(status, session);
-
+    console.log(session?.user.pic);
     const [showEventDropdown, setShowEventDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const eventRef = useRef<HTMLDivElement>(null);
@@ -41,7 +40,7 @@ export default function Profile() {
         }
     }
 
-    if (status === "loading") return <Spinner />;
+    //if (status === "loading") return <Spinner />;
     return (
         <>
             {session ? (
@@ -79,29 +78,30 @@ export default function Profile() {
                             className={`${style} focus:outline-none`}
                             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                         >
-                            {session.user.pic !== ""
+                            {session.user.pic === "" || session.user.pic === undefined || session.user.pic === null
                                 ?
+                                <CircleUserRound className="mr-2" />
+                                :
                                 <div className="rounded-full border-2 w-12 h-12 mr-2 relative overflow-hidden">
                                     <img alt="" className="scale-100 overflow-hidden transition-all ease-in-out duration-300"  style={{ objectFit:"cover", objectPosition: "center"}}
                                          src={session.user.pic!}  />
                                 </div>
-                                :
-                                <CircleUserRound className="mr-2" />
                             }
                             {capitalize(session.user.name || "")}
                         </button>
 
                         {showProfileDropdown && (
                             <div className="absolute right-0 w-90 bg-white border rounded-lg shadow-lg z-10 pb-3">
-                                {session.user.pic !== "" ?
-                                    <div className="flex justify-center m-2">
-                                        <div className="rounded-full border-2 w-30 h-30 my-2 relative overflow-hidden">
-                                            <img alt="" className="scale-100 overflow-hidden transition-all ease-in-out duration-300"  style={{ objectFit:"cover", objectPosition: "center"}}
+                                {session.user.pic === "" || session.user.pic === undefined || session.user.pic === null
+                                    ?
+                                    <div className="flex justify-center mt-11"/>
+                                    :
+                                    <div className="flex justify-center mt-4 mb-2">
+                                        <div className="rounded-full border-2 w-30 h-30 overflow-hidden">
+                                            <img alt="" className="w-full h-full object-cover object-center scale-100 overflow-hidden transition-all ease-in-out duration-300"
                                                  src={session.user.pic!}  />
                                         </div>
                                     </div>
-                                    :
-                                    <div className="flex justify-center mt-11"/>
                                 }
                                 <div className="text-xl text-center font-semibold">
                                     Hi, {capitalize(session.user.name || "")}

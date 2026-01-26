@@ -11,7 +11,7 @@ export default async function getProfileData(){
     const res = await prisma.contact.findUnique({
         where : {id : session?.user.id},
     })
-
+    console.log(res);
     if(!res){
         redirect("/auth/email");
     }

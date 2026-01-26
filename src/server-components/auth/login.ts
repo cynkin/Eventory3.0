@@ -22,14 +22,11 @@ export async function Login(password: string) {
             name,
             role,
             password: passwordHash,
+            contact :{
+                create :{},
+            }
         },
     });
-
-    await prisma.contact.create({
-        data:{
-            id : user.id,
-        },
-    })
 
     cookieStore.delete({
         name: "step",

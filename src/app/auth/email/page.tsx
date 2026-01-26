@@ -1,5 +1,6 @@
 'use client';
 
+import {signIn} from "next-auth/react";
 import logo from "@/images/logo.png"
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
@@ -39,7 +40,7 @@ export default function LoginPage() {
             </Link>
             <div className="self-start text-3xl tracking-wide font-semibold">Sign in or create an account</div>
             <div className="self-start text-lg">Book tickets like never before!</div>
-            <button className=" transition-all cursor-pointer duration-200  flex items-center tracking-wide w-full hover:bg-orange-600 bg-orange-500 rounded-lg pl-2 pr-9 py-2 text-white text-lg mt-10">
+            <button onClick={() => signIn("google", {redirectTo :"/"})} className=" transition-all cursor-pointer duration-200  flex items-center tracking-wide w-full hover:bg-orange-600 bg-orange-500 rounded-lg pl-2 pr-9 py-2 text-white text-lg mt-10">
                 <div className="w-11 h-auto self-start bg-white rounded-sm">
                     <FcGoogle className="p-2 w-full h-auto"/>
                 </div>
