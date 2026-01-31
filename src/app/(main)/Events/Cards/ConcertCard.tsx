@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Clock3, Languages, LibraryBig, UserLock } from "lucide-react";
 import { ConcertCardDTO } from "@/lib/types/main";
 
-function formatDate(dateStr: string){
+function formatDate(dateStr: string) {
     const date = new Date(dateStr);
     const day = date.getDate(); // returns 23 (no leading zero)
     const month = date.toLocaleString('en-US', { month: 'short' }); // "Jul"
@@ -14,47 +14,47 @@ function formatDate(dateStr: string){
 }
 
 export function ConcertCard({
-                                id,
-                                title,
-                                image,
-                                ageRating,
-                                genres,
-                                languages,
-                                duration,
-                                cost,
-                                startDate,
-                                endDate,
-                            }: ConcertCardDTO) {
+    id,
+    title,
+    image,
+    ageRating,
+    genres,
+    languages,
+    duration,
+    cost,
+    startDate,
+    endDate,
+}: ConcertCardDTO) {
     return (
         <Link
             href={`/concert-booking?concertId=${id}`}
-            className="border rounded-2xl mb-1 mr-2 border-b-white w-80 flex flex-col overflow-hidden hover:shadow-md transition"
+            className="border rounded-2xl mb-1 mr-2 border-b-white w-96 flex flex-col overflow-hidden hover:shadow-md transition"
         >
             <img
                 src={image}
                 alt={title}
-                className="h-[180px] w-full object-cover"
+                className="h-52 w-full object-cover"
             />
 
-            <div className="p-3 space-y-1.5">
-                <div className="font-medium text-lg">{title}</div>
+            <div className="p-3 space-y-1">
+                <div className="font-medium text-lg mb-2">{title}</div>
 
-                <div className="flex text-sm text-gray-800">
+                <div className="flex text-gray-800">
                     <UserLock className="w-5 h-5 mr-2" />
                     {ageRating}
                 </div>
 
-                <div className="flex text-sm text-gray-800">
+                <div className="flex text-gray-800">
                     <LibraryBig className="w-5 h-5 mr-2" />
                     {genres.join(", ")}
                 </div>
 
-                <div className="flex text-sm text-gray-800">
+                <div className="flex text-gray-800">
                     <Languages className="w-5 h-5 mr-2" />
                     {languages.join(", ")}
                 </div>
 
-                <div className="flex text-sm text-gray-800">
+                <div className="flex text-gray-800">
                     <Clock3 className="w-5 h-5 mr-2" />
                     {Math.floor(duration / 60)}h {duration % 60}m
                 </div>

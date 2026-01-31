@@ -1,9 +1,10 @@
-import  prisma from '@/lib/db';
-import {getMovies, getConcerts, getTrains} from "@/lib/main/getData";
+import { getMovies, getConcerts, getTrains } from "@/lib/main/getData";
 import CheckTag from "./CheckTag"
-import {MovieCarousel} from "@/app/(main)/Events/Carousels/MovieCarousel";
-import {ConcertCarousel} from "@/app/(main)/Events/Carousels/ConcertCarousel";
-import {TrainCarousel} from "@/app/(main)/Events/Carousels/TrainCarousel";
+import { Suspense } from "react";
+import { MovieCarousel } from "@/app/(main)/Events/Carousels/MovieCarousel";
+import { ConcertCarousel } from "@/app/(main)/Events/Carousels/ConcertCarousel";
+import { TrainCarousel } from "@/app/(main)/Events/Carousels/TrainCarousel";
+import { CarouselSkeleton } from "@/components/skeletons/CarouselSkeleton";
 
 export default async function HomePage() {
     const [movies, concerts, trains] = await Promise.all([
@@ -14,24 +15,32 @@ export default async function HomePage() {
 
     return (
         <>
-            <CheckTag/>
-            <MovieCarousel
-                title="Movies Trending Right Now"
-                initialItems={movies.items}
-                initialCursor={movies.nextCursor}
-            />
+            <CheckTag />
+            <Suspense fallback={<CarouselSkeleton type="movie" titleWidth="w-72" />}>
+                <MovieCarousel
+                    title="Movies Trending Right Now"
+                    initialItems={movies.items}
+                    initialCursor={movies.nextCursor}
+                />
+            </Suspense>
 
-            <ConcertCarousel
-                title="Enjoy the Most Awaited Concerts!"
-                initialItems={concerts.items}
-                initialCursor={concerts.nextCursor}
-            />
+            <Suspense fallback={<CarouselSkeleton type="concert" titleWidth="w-72" />}>
+                <ConcertCarousel
+                    title="Enjoy the Most Awaited Concerts!"
+                    initialItems={concerts.items}
+                    initialCursor={concerts.nextCursor}
+                />
+            </Suspense>
 
-            <TrainCarousel
-                title="Travel and Explore!"
-                initialItems={trains.items}
-                initialCursor={trains.nextCursor}
-            />
+
+            <Suspense fallback={<CarouselSkeleton type="train" titleWidth="w-72" />}>
+                <TrainCarousel
+                    title="Travel and Explore!"
+                    initialItems={trains.items}
+                    initialCursor={trains.nextCursor}
+                />
+            </Suspense>
         </>
     );
 }
+
