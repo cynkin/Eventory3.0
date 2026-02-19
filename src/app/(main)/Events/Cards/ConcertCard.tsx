@@ -27,7 +27,7 @@ export function ConcertCard({
 }: ConcertCardDTO) {
     return (
         <Link
-            href={`/concert-booking?concertId=${id}`}
+            href={`/concert-booking?q=concert&id=${id}`}
             className="border rounded-2xl mb-1 mr-2 border-b-white w-96 flex flex-col overflow-hidden hover:shadow-md transition"
         >
             <img

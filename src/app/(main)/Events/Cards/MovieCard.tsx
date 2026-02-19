@@ -14,7 +14,7 @@ export function MovieCard({
 }: MovieCardDTO) {
     return (
         <Link
-            href={`/booking?movieId=${id}`}
+            href={`/booking?q=movie&id=${id}`}
             className="border mb-1 mr-2 rounded-2xl w-96 border-b-white flex flex-col overflow-hidden hover:shadow-md transition"
         >
             <img

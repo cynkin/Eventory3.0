@@ -1,14 +1,14 @@
 import { z } from "zod";
-import {FormProvider, useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {useSession} from "next-auth/react";
-import {notFound} from "next/navigation";
-import {useState} from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
+import { notFound } from "next/navigation";
+import { useState } from "react";
 import Spinner from "@/components/ui/Spinner";
-import {updateProfile} from "@/server-components/account/updateProfile";
-import {useRemoveSearchParams} from "@/components/hooks/useRemoveSearchParams"
+import { updateProfile } from "@/server-components/account/updateProfile";
+import { useRemoveSearchParams } from "@/components/hooks/useRemoveSearchParams"
 
-type Data ={
+type Data = {
     name: string | null | undefined;
     email: string | null | undefined;
     role: string | undefined;
@@ -31,16 +31,16 @@ function extractDate(dateStr: string | null | undefined): {
     year: string;
 } {
     if (!dateStr) {
-        return {day: "", month: "", year: ""};
+        return { day: "", month: "", year: "" };
     }
 
     const [year, month, day] = dateStr.split("-");
 
     if (!year || !month || !day) {
-        return {day: "", month: "", year: ""};
+        return { day: "", month: "", year: "" };
     }
 
-    return {day, month, year};
+    return { day, month, year };
 }
 
 const formSchema = z.object({
@@ -53,14 +53,14 @@ const formSchema = z.object({
     image: z.string().optional(),
 }).refine((data) => {
 
-    if(data.day.length !== 2 || data.month.length !== 2 || data.year.length !== 4) return false;
+    if (data.day.length !== 2 || data.month.length !== 2 || data.year.length !== 4) return false;
 
     const day = Number(data.day);
     const month = Number(data.month);
     const year = Number(data.year);
 
     if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-    if(year < 1900 || year > 2022) return false;
+    if (year < 1900 || year > 2022) return false;
     if (month < 1 || month > 12) return false;
     if (day < 1) return false;
 
@@ -76,25 +76,25 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 const style = "w-full focus:outline-none focus:ring-[1.7px] focus:ring-gray-900 focus:placeholder:text-gray-700 border py-2 px-3 mt-1 rounded"
 
-export default function ProfileForm({data} : {data : Data}) {
+export default function ProfileForm({ data }: { data: Data }) {
     const { data: session, status, update } = useSession();
     const rmParam = useRemoveSearchParams();
     const [loading, setLoading] = useState(false);
 
-    const {day, month, year} = extractDate(data.dob);
+    const { day, month, year } = extractDate(data.dob);
 
     const methods = useForm<FormData>({
-            resolver: zodResolver(formSchema),
-            defaultValues: {
-                name:data.name!,
-                bio:data.bio || "",
-                month:month,
-                day:day,
-                year:year,
-                gender:data.gender || "",
-                image:data.profile_pic || undefined,
-            }
-        },
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: data.name!,
+            bio: data.bio || "",
+            month: month,
+            day: day,
+            year: year,
+            gender: data.gender || "",
+            image: data.profile_pic || undefined,
+        }
+    },
     );
     const { register, handleSubmit, watch, formState: { errors }, control } = methods;
     const imageUrl = watch("image");
@@ -107,25 +107,25 @@ export default function ProfileForm({data} : {data : Data}) {
         // await updateUser({ name: data.name,});
 
         const obj = {
-            name : data.name,
+            name: data.name,
             bio: data.bio || undefined,
             gender: data.gender || undefined,
-            dob : date_of_birth,
+            dob: date_of_birth,
             pic: data.image || undefined,
         }
         try {
             const res = await updateProfile(obj);
             await update({
-                user:{
+                user: {
                     name: data.name,
-                    pic : data.image || null,
+                    pic: data.image || null,
                 }
             })
             console.log("Profile updated successfully");
             console.log(res);
             //toast.success("Profile updated successfully");
         }
-        catch(error){
+        catch (error) {
             console.log(error);
             //toast.error("Something went wrong");
         }
@@ -135,13 +135,13 @@ export default function ProfileForm({data} : {data : Data}) {
         }
     }
 
-    if(!session) notFound();
+    if (!session) notFound();
 
-    return(
+    return (
         <>
             {loading
                 ?
-                <Spinner/>
+                <Spinner />
                 :
                 <div className="flex justify-center px-4 flex-col">
                     <div className="text-[28px] font-medium mt-12">Basic Information</div>
@@ -225,8 +225,11 @@ export default function ProfileForm({data} : {data : Data}) {
                                     </div>
                                     {imageUrl && (
                                         <div className="rounded-full border-2 mt-5 w-40 h-40 relative overflow-hidden">
-                                            <img alt="" className="w-full h-full object-cover object-center scale-100 overflow-hidden transition-all ease-in-out duration-300"
-                                                 src={session.user.pic!}  />
+                                            <img
+                                                alt="Profile preview"
+                                                className="w-full h-full object-cover object-center transition-all ease-in-out duration-300"
+                                                src={imageUrl}
+                                            />
                                         </div>
                                     )}
                                 </div>

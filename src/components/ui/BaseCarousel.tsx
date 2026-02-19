@@ -60,7 +60,7 @@ export function BaseCarousel({
                 {canPrev && (
                     <button
                         onClick={() => api?.scrollPrev()}
-                        className="absolute -left-5 top-1/2 -translate-y-1/2 z-20
+                        className="absolute -left-5 top-1/2 -translate-y-1/2 z-5
                        bg-white/90 shadow-lg rounded-full p-2 hover:scale-110"
                     >
                         <ChevronLeft className="w-6 h-6 text-blue-700" />
@@ -70,7 +70,7 @@ export function BaseCarousel({
                 {canNext && (
                     <button
                         onClick={() => api?.scrollNext()}
-                        className="absolute -right-5 top-1/2 -translate-y-1/2 z-20
+                        className="absolute -right-5 top-1/2 -translate-y-1/2 z-5
                        bg-white/90 shadow-lg rounded-full p-2 hover:scale-110"
                     >
                         <ChevronRight className="w-6 h-6 text-blue-700" />

@@ -1,6 +1,7 @@
-import {ConcertCardDTO, MovieCardDTO, TrainCardDTO} from "../types/main";
+import type { movies, concerts, trains } from "@prisma/client";
+import { ConcertCardDTO, MovieCardDTO, TrainCardDTO } from "../types/main";
 
-export function mapMovieToCard(movie: any): MovieCardDTO {
+export function mapMovieToCard(movie: movies): MovieCardDTO {
     return {
         id: movie.id,
         title: movie.title,
@@ -11,7 +12,7 @@ export function mapMovieToCard(movie: any): MovieCardDTO {
     };
 }
 
-export function mapConcertToCard(concert: any): ConcertCardDTO {
+export function mapConcertToCard(concert: concerts): ConcertCardDTO {
     return {
         id: concert.id,
         title: concert.title,
@@ -21,16 +22,16 @@ export function mapConcertToCard(concert: any): ConcertCardDTO {
         duration: concert.duration,
         cost: concert.cost,
         languages: concert.languages,
-        startDate: concert.startDate,
-        endDate: concert.endDate,
+        startDate: concert.start_date,
+        endDate: concert.end_date,
     };
 }
 
-export function mapTrainToCard(train: any): TrainCardDTO {
+export function mapTrainToCard(train: trains): TrainCardDTO {
     return {
         id: train.id,
         title: train.title,
-        trainId: train.trainId,
-        stations: train.stations,
+        trainId: train.train_id,
+        stations: train.stations as { name: string; code: string }[],
     };
 }

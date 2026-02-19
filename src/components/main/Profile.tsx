@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { CircleUserRound, Pencil } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-const style = "hover:cursor-pointer text-[#222] flex flex-row items-center text-md tracking-wider font-extrabold my-5 ml-4 mr-8 hover:text-[#1568e3]"
+const style = "hover:cursor-pointer text-[#222] flex flex-row items-center text-md tracking-wider font-extrabold my-5 ml-4 mr-8 hover:text-[#1568e3]";
 
 function capitalize(str: string) {
     if (!str) return "";
@@ -13,13 +13,14 @@ function capitalize(str: string) {
 }
 
 export default function Profile() {
-    const { data: session, status } = useSession();
-    //console.log(status, session);
-    console.log(session?.user.pic);
+    const { data: session } = useSession();
     const [showEventDropdown, setShowEventDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const eventRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
+
+    // Extract repeated condition to a variable - check for empty string too
+    const hasPic = session?.user?.pic && session.user.pic.length > 0;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -34,13 +35,9 @@ export default function Profile() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleCreate = () => {
-        return () => {
-            setShowEventDropdown(!showEventDropdown);
-        }
-    }
+    // Simplified toggle function
+    const handleCreate = () => setShowEventDropdown(prev => !prev);
 
-    //if (status === "loading") return <Spinner />;
     return (
         <>
             {session ? (
@@ -48,7 +45,7 @@ export default function Profile() {
                     <div className="relative mr-4" ref={eventRef}>
                         {session.user.role === 'vendor' &&
                             <button
-                                onClick={handleCreate()}
+                                onClick={handleCreate}
                                 className="my-2 focus:outline-none flex flex-row items-center rounded-full cursor-pointer bg-[#191e3b] hover:bg-[#ffc94c] transition-all duration-200 shadow-lg"
                             >
                                 <div className="p-2 m-2 rounded-full bg-[#ffc94c]">
@@ -78,31 +75,35 @@ export default function Profile() {
                             className={`${style} focus:outline-none`}
                             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                         >
-                            {session.user.pic === "" || session.user.pic === undefined || session.user.pic === null
-                                ?
-                                <CircleUserRound className="mr-2" />
-                                :
+                            {hasPic ? (
                                 <div className="rounded-full border-2 w-12 h-12 mr-2 relative overflow-hidden">
-                                    <img alt="" className="scale-100 overflow-hidden transition-all ease-in-out duration-300"  style={{ objectFit:"cover", objectPosition: "center"}}
-                                         src={session.user.pic!}  />
+                                    <img
+                                        alt=""
+                                        className="w-full h-full object-cover object-center transition-all ease-in-out duration-300"
+                                        src={session.user.pic!}
+                                    />
                                 </div>
-                            }
+                            ) : (
+                                <CircleUserRound className="mr-2" />
+                            )}
                             {capitalize(session.user.name || "")}
                         </button>
 
                         {showProfileDropdown && (
                             <div className="absolute right-0 w-90 bg-white border rounded-lg shadow-lg z-10 pb-3">
-                                {session.user.pic === "" || session.user.pic === undefined || session.user.pic === null
-                                    ?
-                                    <div className="flex justify-center mt-11"/>
-                                    :
+                                {hasPic ? (
                                     <div className="flex justify-center mt-4 mb-2">
                                         <div className="rounded-full border-2 w-30 h-30 overflow-hidden">
-                                            <img alt="" className="w-full h-full object-cover object-center scale-100 overflow-hidden transition-all ease-in-out duration-300"
-                                                 src={session.user.pic!}  />
+                                            <img
+                                                alt=""
+                                                className="w-full h-full object-cover object-center transition-all ease-in-out duration-300"
+                                                src={session.user.pic!}
+                                            />
                                         </div>
                                     </div>
-                                }
+                                ) : (
+                                    <div className="flex justify-center mt-11" />
+                                )}
                                 <div className="text-xl text-center font-semibold">
                                     Hi, {capitalize(session.user.name || "")}
                                 </div>
@@ -124,7 +125,7 @@ export default function Profile() {
                                     Account
                                 </Link>
 
-                                <button onClick={()=> signOut({ redirectTo: "/" })}
+                                <button onClick={() => signOut({ redirectTo: "/" })}
                                     className="block w-full text-sm text-gray-700 py-2 rounded hover:bg-gray-100 font-medium text-center"
                                 >
                                     Sign out
