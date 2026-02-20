@@ -1,5 +1,5 @@
 'use client';
-import { InfiniteCarousel } from "@/components/ui/InfiniteCarousel";
+import { InfiniteCarousel } from "@/components/ui/Carousels/InfiniteCarousel";
 import { MovieCard } from "../Cards/MovieCard";
 import { MovieCardSkeleton } from "../Cards/MovieCardSkeleton";
 import { MovieCardDTO } from "@/lib/types/main";

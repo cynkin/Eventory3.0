@@ -6,7 +6,7 @@ import {
     Carousel,
     CarouselContent,
     type CarouselApi,
-} from "@/components/ui/carousel";
+} from "@/components/ui/Carousels/carousel";
 
 interface BaseCarouselProps {
     title: string;

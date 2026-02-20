@@ -1,6 +1,6 @@
 "use client";
 
-import { InfiniteCarousel } from "@/components/ui/InfiniteCarousel";
+import { InfiniteCarousel } from "@/components/ui/Carousels/InfiniteCarousel";
 import { ConcertCard } from "../Cards/ConcertCard";
 import { ConcertCardSkeleton } from "../Cards/ConcertCardSkeleton";
 import { ConcertCardDTO } from "@/lib/types/main";

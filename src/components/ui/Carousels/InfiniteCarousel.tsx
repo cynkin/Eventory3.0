@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { CarouselItem } from "@/components/ui/carousel";
-import { BaseCarousel } from "@/components/ui/BaseCarousel";
+import { CarouselItem } from "@/components/ui/Carousels/carousel";
+import { BaseCarousel } from "@/components/ui/Carousels/BaseCarousel";
 import {
     useInfiniteCarousel,
     type UseInfiniteCarouselOptions,

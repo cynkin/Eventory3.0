@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { CarouselApi } from "@/components/ui/carousel";
+import type { CarouselApi } from "@/components/ui/Carousels/carousel";
 import type { PaginatedResponse } from "@/lib/types/pagination";
 
 export interface UseInfiniteCarouselOptions<T> {

@@ -3,6 +3,9 @@ import {ConcertCardDTO, MovieCardDTO, TrainCardDTO} from "@/lib/types/main";
 import {CursorPaginationParams, PaginatedResponse} from "@/lib/types/pagination";
 import {mapConcertToCard, mapMovieToCard, mapTrainToCard} from "@/lib/main/mappers";
 
+const isUUID = (id: string) => {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id);
+};
 
 export async function getMovies(
     params: CursorPaginationParams
@@ -67,3 +70,83 @@ export async function getTrains(
     };
 }
 
+export async function getMovieDetails(id: string, date?: string) {
+    if (!isUUID(id)) return null;
+    try {
+        const movie = await prisma.movies.findUnique({
+            where: {id},
+            include: {
+                theatres: {
+                    include: {
+                        shows: {
+                            where: date ? {date} : undefined, // ✅ filter by date
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!movie) return null;
+
+        const theatres = movie.theatres
+            // optional: remove theatres with no shows for that date
+            .filter((t) => t.shows.length > 0)
+            .map((t) => ({
+                location: t.location,
+                vendorId: t.vendor_id,
+                seatLayout: t.seatLayout,
+                cost: 0,
+                premiumCost: 0,
+                slots: t.shows.map((s) => ({
+                    time: s.time,
+                    language: s.language,
+                })),
+            }));
+
+        return {movie, theatres};
+    }
+    catch (err) {
+        console.error(err);
+        return null;
+    }
+}
+
+export async function getConcertDetails(id: string, date?: string) {
+    if (!isUUID(id)) return null;
+    try {
+        const concert = await prisma.concerts.findUnique({
+            where: {id},
+            include: {
+                concert_shows: {
+                    where: date ? {date} : undefined,
+                },
+            },
+        });
+
+        if (!concert) return null;
+
+        // Group shows by location
+        const venueMap = new Map<string, any[]>();
+        concert.concert_shows.forEach((show) => {
+            if (!venueMap.has(show.location)) {
+                venueMap.set(show.location, []);
+            }
+            venueMap.get(show.location)!.push(show);
+        });
+
+        const venues = Array.from(venueMap.entries()).map(([location, shows]) => ({
+            location,
+            vendorId: concert.vendor_id,
+            slots: shows.map((s) => ({
+                time: s.time,
+                language: concert.languages[0] || 'EN', // concerts don't have per-show language
+            })),
+        }));
+
+        return {concert, venues};
+    }
+    catch (err) {
+        console.error(err);
+        return null;
+    }
+}
