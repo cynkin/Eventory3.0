@@ -1,6 +1,16 @@
 import nodemailer from 'nodemailer';
 
-export const sendEmail = async (userEmail: string, subject : string, text: string) =>{
+type EmailOptions = {
+    html?: string;
+    attachments?: nodemailer.SendMailOptions['attachments'];
+};
+
+export const sendEmail = async (
+    userEmail: string,
+    subject: string,
+    text: string,
+    options?: EmailOptions
+) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -9,12 +19,14 @@ export const sendEmail = async (userEmail: string, subject : string, text: strin
         },
     });
 
-    const mailOptions = {
+    const mailOptions: nodemailer.SendMailOptions = {
         from: `"Eventory, Inc" <${process.env.EMAIL_USER}>`,
         to: userEmail,
-        subject: subject,
-        text: text,
-    }
+        subject,
+        text,
+        ...(options?.html && { html: options.html }),
+        ...(options?.attachments && { attachments: options.attachments }),
+    };
 
     await transporter.sendMail(mailOptions);
-}
+};

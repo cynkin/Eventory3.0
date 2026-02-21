@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import prisma from "@/lib/db";
 import { randomUUID } from "crypto";
+import { sendMovieTicketEmail } from "@/lib/email/tickets/sendTicketEmail";
 
 const HOLD_DURATION = 60 * 1000;
 
@@ -260,6 +261,11 @@ io.on("connection", (socket) => {
                 ageRating: movie.ageRating,
             },
         };
+
+        // Send ticket email (fire-and-forget — booking is already successful)
+        sendMovieTicketEmail(ticketData, user.email!).catch((e) =>
+            console.error("Failed to send movie ticket email:", e)
+        );
 
         console.log("[Socket Server]: Seat confirmed");
         socket.emit("seat:confirm:success", { success: true, ticketData, newBalance });

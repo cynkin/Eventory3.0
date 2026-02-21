@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { randomUUID } from "crypto";
+import { sendConcertTicketEmail } from "@/lib/email/tickets/sendTicketEmail";
 
 export async function POST(req: NextRequest) {
     try {
@@ -112,6 +113,11 @@ export async function POST(req: NextRequest) {
                 ageRating: concert.ageRating,
             },
         };
+
+        // Send ticket email (fire-and-forget — booking is already successful)
+        sendConcertTicketEmail(ticketData, user.email).catch((e) =>
+            console.error("Failed to send concert ticket email:", e)
+        );
 
         return NextResponse.json({
             success: true,
