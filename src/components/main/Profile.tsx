@@ -19,9 +19,7 @@ export default function Profile() {
     const eventRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
 
-    // Extract repeated condition to a variable - check for empty string too
     const hasPic = session?.user?.pic && session.user.pic.length > 0;
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (eventRef.current && !eventRef.current.contains(event.target as Node)) {

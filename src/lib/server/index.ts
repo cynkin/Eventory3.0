@@ -86,19 +86,30 @@ io.on("connection", (socket) => {
         socket.to(slotId).emit("seat:unlocked", { code, slotId });
     });
 
-    socket.on("seat:confirm", async ({ slotId, amount, selectedSeats: seats, show }) => {
+    socket.on("seat:confirm", async ({ slotId, amount, selectedSeats: seats }) => {
         const userId = socket.data.userId;
         if (!userId || !seats.length) return;
-        console.log("Confirming Seats");
+        console.log("Confirming Seats. userId:", userId, "slotId:", slotId, "amount:", amount, "seats:", seats);
+
+        if (typeof amount !== "number" || amount <= 0) {
+            socket.emit("seat:confirm:error", { errors: ["Invalid amount"] });
+            return;
+        }
+
+        const show = await prisma.shows.findUnique({
+            where: { id: slotId },
+            include: { movies: true, theatres: true },
+        });
 
         if (!show) {
             socket.emit("seat:confirm:error", { errors: ["Show not found"] });
             return;
         }
 
-        const showSeats = show.seats;
+        const showSeats = show.seats as any[][];
         const errors: string[] = [];
 
+        // --- Validate all seats before touching anything ---
         for (const code of seats) {
             const { rowIndex, seatIndex } = findSeatIndex(showSeats, code);
             if (rowIndex === -1 || seatIndex === -1) {
@@ -117,11 +128,6 @@ io.on("connection", (socket) => {
                 errors.push(`Seat ${code} is not yours`);
                 continue;
             }
-
-            showSeats[rowIndex][seatIndex].status = "booked";
-
-            clearTimeout(entry.timeout);
-            heldSeatsBySlot.get(slotId)?.delete(code);
         }
 
         if (errors.length > 0) {
@@ -129,14 +135,104 @@ io.on("connection", (socket) => {
             return;
         }
 
-        for (const code of seats) {
-            io.to(slotId).emit("seat:booked", { code, slotId });
+        // --- Check user balance ---
+        const user = await prisma.users.findUnique({ where: { id: userId } });
+        if (!user || !user.email) {
+            socket.emit("seat:confirm:error", { errors: ["User not found"] });
+            return;
         }
 
-        await prisma.shows.update({
-            where: { id: slotId },
-            data: { seats: showSeats }
-        });
+        const currentBalance = Number(user.balance);
+        if (currentBalance < amount) {
+            socket.emit("seat:confirm:error", { errors: ["Insufficient balance"] });
+            return;
+        }
+
+        // --- Mark seats as booked in the layout copy ---
+        for (const code of seats) {
+            const { rowIndex, seatIndex } = findSeatIndex(showSeats, code);
+            showSeats[rowIndex][seatIndex].status = "booked";
+        }
+
+        // --- Atomic transaction: update seats + create ticket + deduct balance + transfer funds ---
+        const movie = show.movies;
+        const theatre = show.theatres;
+        const commission = movie.commission; // percentage that goes to movie vendor
+        const movieCut = amount * (commission / 100);
+        const theatreCut = amount - movieCut;
+
+        // Build a net balance change map to avoid updating the same user row multiple times
+        // (which causes conflicts/deadlocks in a transaction)
+        const balanceChanges = new Map<string, number>();
+        balanceChanges.set(userId, -(amount));
+        balanceChanges.set(movie.vendor_id, (balanceChanges.get(movie.vendor_id) ?? 0) + movieCut);
+        balanceChanges.set(theatre.vendor_id, (balanceChanges.get(theatre.vendor_id) ?? 0) + theatreCut);
+
+        let ticket;
+        try {
+            const result = await prisma.$transaction(async (tx) => {
+                // 1. Update show seats
+                console.log("[TX] Step 1: Updating show seats...");
+                await tx.shows.update({
+                    where: { id: slotId },
+                    data: { seats: showSeats },
+                });
+
+                // 2. Apply all balance changes (one update per unique user)
+                for (const [uid, change] of balanceChanges.entries()) {
+                    if (change === 0) continue;
+                    console.log("[TX] Balance change for", uid, ":", change > 0 ? `+${change}` : change);
+                    if (change > 0) {
+                        await tx.users.update({
+                            where: { id: uid },
+                            data: { balance: { increment: change } },
+                        });
+                    } else {
+                        await tx.users.update({
+                            where: { id: uid },
+                            data: { balance: { decrement: Math.abs(change) } },
+                        });
+                    }
+                }
+
+                // 3. Create ticket
+                console.log("[TX] Creating ticket...");
+                const newTicket = await tx.tickets.create({
+                    data: {
+                        id: randomUUID(),
+                        seats,
+                        amount,
+                        users: { connect: { id: userId } },
+                        shows: { connect: { id: slotId } },
+                    },
+                });
+
+                console.log("[TX] All steps complete. Ticket:", newTicket.id);
+                return newTicket;
+            });
+
+            ticket = result;
+        } catch (e) {
+            console.error("Transaction failed:", e);
+
+            // Rollback: revert seat statuses in memory
+            for (const code of seats) {
+                const { rowIndex, seatIndex } = findSeatIndex(showSeats, code);
+                if (rowIndex !== -1 && seatIndex !== -1) {
+                    showSeats[rowIndex][seatIndex].status = "available";
+                }
+            }
+
+            socket.emit("seat:confirm:error", { errors: ["Payment failed. Please try again."] });
+            return;
+        }
+
+        // --- Success: clean up holds and notify all clients ---
+        for (const code of seats) {
+            const entry = heldSeatsBySlot.get(slotId)?.get(code);
+            if (entry?.timeout) clearTimeout(entry.timeout);
+            heldSeatsBySlot.get(slotId)?.delete(code);
+        }
 
         const heldList = seatsHeldBySocket.get(socket.id) || [];
         seatsHeldBySocket.set(
@@ -144,35 +240,11 @@ io.on("connection", (socket) => {
             heldList.filter(seat => !seats.includes(seat.seatCode))
         );
 
-        let ticket;
-        try {
-            ticket = await prisma.tickets.create({
-                data: {
-                    id: randomUUID(),
-                    seats,
-                    amount,
-                    users: { connect: { id: userId } },
-                    shows: { connect: { id: slotId } },
-                }
-            });
-        } catch (e) {
-            console.log(e);
-            socket.emit("seat:confirm:error", { errors: ["Error booking tickets"] });
-            return;
+        for (const code of seats) {
+            io.to(slotId).emit("seat:booked", { code, slotId });
         }
 
-        const theatre = await prisma.theatres.findUnique({ where: { id: show.theatre_id } });
-        const movie = await prisma.movies.findUnique({ where: { id: show.movie_id } });
-        if (!theatre || !movie) {
-            socket.emit("seat:confirm:error", { errors: ["Movie or Theatre not found"] });
-            return;
-        }
-
-        const user = await prisma.users.findUnique({ where: { id: userId } });
-        if (!user || !user.email) {
-            socket.emit("seat:confirm:error", { errors: ["User email not found"] });
-            return;
-        }
+        const newBalance = currentBalance + (balanceChanges.get(userId) ?? 0);
 
         const ticketData = {
             amount,
@@ -189,7 +261,8 @@ io.on("connection", (socket) => {
             },
         };
 
-        socket.emit("seat:confirm:success", { success: true, ticketData });
+        console.log("[Socket Server]: Seat confirmed");
+        socket.emit("seat:confirm:success", { success: true, ticketData, newBalance });
     });
 
     socket.on("disconnect", () => {

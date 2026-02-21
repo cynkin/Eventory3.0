@@ -6,9 +6,9 @@ import {useSession} from "next-auth/react";
 
 function formatDate(dateStr: string){
     const date = new Date(dateStr);
-    const day = date.getDate(); // returns 23 (no leading zero)
-    const month = date.toLocaleString('en-US', { month: 'short' }); // "Jul"
-    const year = date.getFullYear(); // 2025
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const year = date.getFullYear();
 
     return `${day} ${month}, ${year}`;
 }
@@ -40,63 +40,62 @@ type Data = {
 
 export default function PaymentPage(data: Data) {
     const { data: session, status, update } = useSession();
+    const router = useRouter();
 
     const [noOfSeats, setNoOfSeats] = useState<number>(0);
+    const [submitting, setSubmitting] = useState<boolean>(false);
+    const [bookingError, setBookingError] = useState<string | null>(null);
+
+    const amount = noOfSeats * data.concert.cost;
 
     const handleSubmit = async () => {
-        if(!noOfSeats) return;
-        if(noOfSeats > data.show.seats) alert("Exceeds no. of available seats");
-        if(!session || !session.user || !session.user.email || !session.user.balance) return;
+        if (!noOfSeats) return;
+        if (!session || !session.user || !session.user.id) return;
+        if (submitting) return;
 
-        // const amount = noOfSeats*concert.cost;
-        // if(balance < amount) {
-        //     alert("Insufficient balance");
-        //     return;
-        // }
-        // console.log("Submitting payment", balance);
-        // const ticketData = {
-        //     image: concert.image,
-        //     title: concert.title,
-        //     date: show.date,
-        //     time: show.time,
-        //     location: show.location,
-        //     amount,
-        //     noOfSeats: noOfSeats,
-        //     concertId: concertId,
-        //     showId: showId,
-        //     userId: session.user.id,
-        //     vendorId: concert.vendor_id,
-        // }
-        //
-        // try {
-        //     const res = await fetch("/api/send-ticket/concert", {
-        //         method: "POST",
-        //         headers: { "Content-Type": "application/json" },
-        //         body: JSON.stringify({ ticketData , email: session.user.email })
-        //     });
-        //
-        //     const data = await res.json();
-        //
-        //     if (!res.ok || !data.success) {
-        //         console.error("Ticket email failed", data.error);
-        //     } else {
-        //         console.log("Ticket sent successfully");
-        //     }
-        // } catch (e) {
-        //     console.error("Error sending download-ticket:", e);
-        // }
+        if (noOfSeats > data.show.seats) {
+            setBookingError("Exceeds available seats");
+            return;
+        }
 
-        // const newBalance = balance - amount;
-        // await update({
-        //     user:{
-        //         balance: newBalance,
-        //     }
-        // })
-        // console.log("Balance updated", newBalance, session.user.balance);
-        router.push("/account/history")
+        const userBalance = Number(session.user.balance);
+        if (userBalance < amount) {
+            setBookingError("Insufficient balance");
+            return;
+        }
 
-    }
-    const router = useRouter();
+        setSubmitting(true);
+        setBookingError(null);
+
+        try {
+            const res = await fetch("/api/booking/concert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: session.user.id,
+                    concertShowId: data.show.id,
+                    noOfSeats,
+                }),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                setBookingError(result.error || "Booking failed. Please try again.");
+                setSubmitting(false);
+                return;
+            }
+
+            // Update session with the new balance (no DB query — passed directly to JWT)
+            await update({ balance: result.newBalance });
+
+            router.push("/account/history");
+        } catch (e) {
+            console.error("Concert booking error:", e);
+            setBookingError("Something went wrong. Please try again.");
+            setSubmitting(false);
+        }
+    };
 
     return(
         <div className="xl:px-44 px-4 mt-10">
@@ -146,16 +145,22 @@ export default function PaymentPage(data: Data) {
                             <div className="mt-3">Payment Total</div>
                             <div className="flex px-2 justify-between font-bold">
                                 <div>Total</div>
-                                <div>&#8377; {data.concert.cost * noOfSeats}</div>
+                                <div>&#8377; {amount}</div>
                             </div>
                         </div>
 
+                        {bookingError && (
+                            <div className="mt-3 w-full text-center text-sm text-red-600 font-medium">
+                                {bookingError}
+                            </div>
+                        )}
+
                         <div className="mt-5 flex justify-center w-full rounded-xl">
                             <button
-                                disabled={noOfSeats === 0}
+                                disabled={noOfSeats === 0 || submitting}
                                 onClick={handleSubmit}
                                 className=" px-4 py-2 w-full cursor-pointer rounded-full bg-[#1568e3] text-white hover:bg-[#0d4eaf] disabled:opacity-50 disabled:cursor-not-allowed">
-                                Proceed to Payment
+                                {submitting ? "Processing..." : "Proceed to Payment"}
                             </button>
                         </div>
                     </div>

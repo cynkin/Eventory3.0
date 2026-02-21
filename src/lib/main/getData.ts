@@ -1,8 +1,7 @@
-import  prisma from '@/lib/db';
-import {ConcertCardDTO, MovieCardDTO, TrainCardDTO} from "@/lib/types/main";
-import {CursorPaginationParams, PaginatedResponse} from "@/lib/types/pagination";
-import {mapConcertToCard, mapMovieToCard, mapTrainToCard} from "@/lib/main/mappers";
-import SeatSelection from "@/app/booking/seats/Seats";
+import prisma from '@/lib/db';
+import { ConcertCardDTO, MovieCardDTO, TrainCardDTO } from "@/lib/types/main";
+import { CursorPaginationParams, PaginatedResponse } from "@/lib/types/pagination";
+import { mapConcertToCard, mapMovieToCard, mapTrainToCard } from "@/lib/main/mappers";
 
 const isUUID = (id: string) => {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id);
@@ -75,12 +74,12 @@ export async function getMovieDetails(id: string, date?: string) {
     if (!isUUID(id)) return null;
     try {
         const movie = await prisma.movies.findUnique({
-            where: {id},
+            where: { id },
             include: {
                 theatres: {
                     include: {
                         shows: {
-                            where: date ? {date} : undefined, // ✅ filter by date
+                            where: date ? { date } : undefined, // ✅ filter by date
                         },
                     },
                 },
@@ -105,7 +104,7 @@ export async function getMovieDetails(id: string, date?: string) {
                 })),
             }));
 
-        return {movie, theatres};
+        return { movie, theatres };
     }
     catch (err) {
         console.error(err);
@@ -117,10 +116,10 @@ export async function getConcertDetails(id: string, date?: string) {
     if (!isUUID(id)) return null;
     try {
         const concert = await prisma.concerts.findUnique({
-            where: {id},
+            where: { id },
             include: {
                 concert_shows: {
-                    where: date ? {date} : undefined,
+                    where: date ? { date } : undefined,
                 },
             },
         });
@@ -146,7 +145,7 @@ export async function getConcertDetails(id: string, date?: string) {
             })),
         }));
 
-        return {concert, venues};
+        return { concert, venues };
     }
     catch (err) {
         console.error(err);
@@ -176,7 +175,6 @@ export async function getMovieShowDetails(id: string) {
             language: show.language,
             cost: show.cost,
             premium_cost: Number(show.premium_cost),
-            seats: Number(show.seats),
         },
 
         movie: show.movies,
@@ -184,7 +182,7 @@ export async function getMovieShowDetails(id: string) {
         theatre: {
             id: show.theatres.id,
             location: show.theatres.location,
-            seatLayout: show.theatres.seatLayout as any[][],
+            seatLayout: show.seats as any[][],
         },
     };
 }

@@ -108,7 +108,7 @@ export const {
             return true;
         },
 
-        async jwt({ token, user, account, trigger }) {
+        async jwt({ token, user, account, trigger, session }) {
             if (user) {
                 if (account?.provider === "credentials") {
                     token.id = user.id;
@@ -136,17 +136,38 @@ export const {
                 }
             }
 
-            if(trigger === "update"){
-                const updated_user = await prisma.users.findUnique({
-                    where: {id: token.id}
+            if (trigger === "update") {
+                // If the caller passed balance directly (e.g. after payment), use it immediately
+                const updateData = session as Record<string, any> | undefined;
+
+                if (updateData?.balance !== undefined) {
+                    token.balance = Number(updateData.balance);
+                } else {
+                    // Full refresh for other updates (name, pic, etc.)
+                    const updated_user = await prisma.users.findUnique({
+                        where: { id: token.id as string },
+                        select: { name: true, balance: true, pic: true },
+                    });
+
+                    if (updated_user) {
+                        token.name = updated_user.name;
+                        token.balance = Number(updated_user.balance);
+                        token.pic = updated_user.pic;
+                    }
+                }
+            } else if (!user && token.id) {
+                // On every normal request (page load, refresh, session fetch):
+                // Sync balance from DB so the JWT never goes stale
+                const freshUser = await prisma.users.findUnique({
+                    where: { id: token.id as string },
+                    select: { balance: true },
                 });
 
-                if(updated_user){
-                    token.name = updated_user.name;
-                    token.balance = Number(updated_user.balance);
-                    token.pic = updated_user.pic;
+                if (freshUser) {
+                    token.balance = Number(freshUser.balance);
                 }
             }
+
             return token;
         },
 

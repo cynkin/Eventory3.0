@@ -1,5 +1,4 @@
 'use server';
-
 import prisma from "@/lib/db";
 import {auth} from "@/auth";
 import ProfilePage from "./ProfilePage";
