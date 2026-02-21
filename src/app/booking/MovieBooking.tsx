@@ -1,7 +1,6 @@
 'use client'
-import {useRouter} from "next/navigation";
 import {New_Rocker} from "next/font/google";
-import EventBooking from "@/components/ui/EventBooking";
+import EventBooking from "@/app/booking/EventBooking";
 
 const font = New_Rocker({
     subsets:['latin'],
@@ -20,6 +19,7 @@ type Movie = {
 };
 
 type Slot = {
+    id: string,
     time: string,
     language: string,
 }
@@ -39,19 +39,12 @@ type MovieProps = {
 }
 
 export default function MovieBooking({movie, theatres}: MovieProps) {
-    const router = useRouter();
-
-    function handleSlotSelect(slot: Slot, venue: Theatre) {
-        router.push("/booking/seats?id=" + movie.id);
-    }
-
     return (
         <EventBooking
             event={movie}
             venues={theatres}
             eventType="movie"
             titleFont={font.className}
-            onSlotSelect={handleSlotSelect}
         />
     )
 }

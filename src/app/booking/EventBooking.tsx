@@ -5,6 +5,7 @@ import {Dot} from "lucide-react";
 import Link from "next/link";
 
 type Slot = {
+    id: string,
     time: string,
     language: string,
 }
@@ -34,10 +35,9 @@ type EventBookingProps = {
     venues: Venue[];
     eventType: 'movie' | 'concert';
     titleFont: string;
-    onSlotSelect?: (slot: Slot, venue: Venue) => void;
 }
 
-export default function EventBooking({event, venues, eventType, titleFont, onSlotSelect}: EventBookingProps) {
+export default function EventBooking({event, venues, eventType, titleFont}: EventBookingProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     let dateParam = searchParams.get('date');
@@ -50,11 +50,11 @@ export default function EventBooking({event, venues, eventType, titleFont, onSlo
         dateParam = `${year}-${month}-${day}`;
     }
 
-    function seatSelect(slot: Slot, venue: Venue) {
-        if(onSlotSelect) {
-            onSlotSelect(slot, venue);
+    function seatSelect(slot: Slot) {
+        if (eventType === 'movie') {
+            router.push(`/booking/seats?id=${slot.id}`);
         } else {
-            router.push(`/booking/seats?id=${event.id}`);
+            router.push(`/booking/payment?q=${eventType}&id=${slot.id}`);
         }
     }
 
@@ -91,7 +91,7 @@ export default function EventBooking({event, venues, eventType, titleFont, onSlo
                 <img src={event.image} alt="banner" className="border-2 w-160 border-black p-5"/>
                 <div className="flex justify-center items-center flex-col">
                     <div className={`${titleFont} self-start text-8xl`}>{event.title.toUpperCase()}</div>
-                    <div className="flex items-center self-start flex-row mt-4 space-x-2">
+                    <div className="flex items-center self-start flex-row mt-4 font-bold text-lg space-x-2">
                         <div className="">{event.ageRating}</div><Dot className="w-9 h-auto"/>
 
                         <div className="text-nowrap">
@@ -129,7 +129,7 @@ export default function EventBooking({event, venues, eventType, titleFont, onSlo
                                     <div className="text-2xl font-extrabold">{venue.location.toUpperCase()}</div>
                                     <div className="flex text-nowrap gap-6">
                                         {venue.slots.map((slot: Slot, idx: number) => (
-                                            <button onClick={() => seatSelect(slot, venue)} key={idx} className="relative cursor-pointer border-2 border-blue-700 text-center rounded-xl px-6 pt-5 pb-2">
+                                            <button onClick={() => seatSelect(slot)} key={idx} className="relative cursor-pointer border-2 border-blue-700 text-center rounded-xl px-6 pt-5 pb-2">
                                                 <div className="absolute shadow -top-2 left-1/2 -translate-x-1/2 px-2 rounded-lg bg-white font-extrabold text-xs tracking-wide">
                                                     {slot.language}
                                                 </div>

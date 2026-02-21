@@ -1,7 +1,6 @@
 'use client'
-import {useRouter} from "next/navigation";
 import {Metamorphous} from "next/font/google";
-import EventBooking from "@/components/ui/EventBooking";
+import EventBooking from "@/app/booking/EventBooking";
 
 const font = Metamorphous({
     subsets:['latin'],
@@ -19,6 +18,7 @@ type Concert = {
 };
 
 type Slot = {
+    id: string,
     time: string,
     language: string,
 }
@@ -38,19 +38,12 @@ type ConcertProps = {
 }
 
 export default function ConcertBooking({concert, venues}: ConcertProps) {
-    const router = useRouter();
-
-    function handleSlotSelect(slot: Slot, venue: Venue) {
-        router.push("/booking/seats?id=" + concert.id);
-    }
-
     return (
         <EventBooking
             event={concert}
             venues={venues}
             eventType="concert"
             titleFont={font.className}
-            onSlotSelect={handleSlotSelect}
         />
     )
 }

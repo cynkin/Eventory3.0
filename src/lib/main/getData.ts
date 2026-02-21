@@ -2,6 +2,7 @@ import  prisma from '@/lib/db';
 import {ConcertCardDTO, MovieCardDTO, TrainCardDTO} from "@/lib/types/main";
 import {CursorPaginationParams, PaginatedResponse} from "@/lib/types/pagination";
 import {mapConcertToCard, mapMovieToCard, mapTrainToCard} from "@/lib/main/mappers";
+import SeatSelection from "@/app/booking/seats/Seats";
 
 const isUUID = (id: string) => {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id);
@@ -98,6 +99,7 @@ export async function getMovieDetails(id: string, date?: string) {
                 cost: 0,
                 premiumCost: 0,
                 slots: t.shows.map((s) => ({
+                    id: s.id,
                     time: s.time,
                     language: s.language,
                 })),
@@ -138,6 +140,7 @@ export async function getConcertDetails(id: string, date?: string) {
             location,
             vendorId: concert.vendor_id,
             slots: shows.map((s) => ({
+                id: s.id,
                 time: s.time,
                 language: concert.languages[0] || 'EN', // concerts don't have per-show language
             })),
@@ -148,5 +151,58 @@ export async function getConcertDetails(id: string, date?: string) {
     catch (err) {
         console.error(err);
         return null;
+    }
+}
+
+export async function getMovieShowDetails(id: string) {
+    if (!isUUID(id)) return null;
+
+    const show = await prisma.shows.findUnique({
+        where: { id: id },
+
+        include: {
+            movies: true,
+            theatres: true,
+        },
+    });
+
+    if (!show) return null;
+
+    return {
+        show: {
+            id: show.id,
+            date: show.date,
+            time: show.time,
+            language: show.language,
+            cost: show.cost,
+            premium_cost: Number(show.premium_cost),
+            seats: Number(show.seats),
+        },
+
+        movie: show.movies,
+
+        theatre: {
+            id: show.theatres.id,
+            location: show.theatres.location,
+            seatLayout: show.theatres.seatLayout as any[][],
+        },
+    };
+}
+
+export async function getConcertShowDetails(id: string) {
+    if (!isUUID(id)) return null;
+    const show = await prisma.concert_shows.findUnique({
+        where: { id: id },
+
+        include: {
+            concerts: true,
+        },
+    });
+
+    if (!show) return null;
+
+    return {
+        concert: show.concerts,
+        show
     }
 }
