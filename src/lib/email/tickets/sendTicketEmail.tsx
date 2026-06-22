@@ -5,7 +5,8 @@ import { sendEmail } from '@/lib/email/send-email';
 import { formatDate } from '@/lib/utils/formatDate';
 import MovieTicketPDF from './MovieTicketPDF';
 import ConcertTicketPDF from './ConcertTicketPDF';
-import type { MovieTicketData, ConcertTicketData } from './types';
+import TrainTicketPDF from './TrainTicketPDF';
+import type { MovieTicketData, ConcertTicketData, TrainTicketData } from './types';
 
 /**
  * Fetches a remote image and returns it as a base64 data URI.
@@ -89,6 +90,28 @@ export async function sendConcertTicketEmail(ticketData: ConcertTicketData, user
         userEmail,
         `Ticket for ${ticketData.concert.title} on ${formatDate(ticketData.date)}`,
         'Thank you for choosing us to entertain you! For verification and check-in, please download the ticket attached below!',
+        {
+            attachments: [
+                {
+                    filename: `ticket_${ticketData.booking_id}.pdf`,
+                    content: pdfBuffer,
+                    contentType: 'application/pdf',
+                },
+            ],
+        }
+    );
+}
+
+export async function sendTrainTicketEmail(ticketData: TrainTicketData, userEmail: string) {
+    const qrCodeBase64 = await QRCode.toDataURL(JSON.stringify({ id: ticketData.booking_id }));
+    const pdfBuffer = await renderToBuffer(
+        <TrainTicketPDF ticket={ticketData} qrCodeBase64={qrCodeBase64} />
+    );
+
+    await sendEmail(
+        userEmail,
+        `Ticket for ${ticketData.title} on ${formatDate(ticketData.from.date)}`,
+        'Thank you for choosing us! For check-in, please download the ticket attached below.',
         {
             attachments: [
                 {

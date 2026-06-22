@@ -26,3 +26,14 @@ export type ConcertTicketData = {
         ageRating: string;
     };
 };
+
+export type TrainTicketData = {
+    booking_id: string;
+    title: string;
+    trainId: number;
+    amount: number;
+    bookedSeats: string[];
+    passengers: { name: string; age: number; gender: string }[];
+    from: { location: string; date: string; time: string };
+    to: { location: string; date: string; time: string };
+};
