@@ -2,7 +2,7 @@
 // Messages are JSON: { type: string, payload: any }
 // The Go WebSocket server speaks this same envelope.
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:4000";
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:4000/ws";
 
 type Listener = (payload: any) => void;
 
