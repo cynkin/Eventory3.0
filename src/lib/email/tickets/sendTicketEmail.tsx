@@ -25,23 +25,27 @@ async function fetchImageAsBase64(url: string): Promise<string> {
     }
 }
 
-/**
- * Generates a PDF ticket and sends it via email for a movie booking.
- * This should be called fire-and-forget (no await) after a successful transaction.
- */
-export async function sendMovieTicketEmail(ticketData: MovieTicketData, userEmail: string) {
+export async function generateMovieTicketPDF(ticketData: MovieTicketData) {
     const [qrCodeBase64, movieImageBase64] = await Promise.all([
         QRCode.toDataURL(JSON.stringify({ id: ticketData.booking_id })),
         fetchImageAsBase64(ticketData.movie.image),
     ]);
 
-    const pdfBuffer = await renderToBuffer(
+    return await renderToBuffer(
         <MovieTicketPDF
             ticket={ticketData}
             qrCodeBase64={qrCodeBase64}
             movieImageBase64={movieImageBase64}
         />
     );
+}
+
+/**
+ * Generates a PDF ticket and sends it via email for a movie booking.
+ * This should be called fire-and-forget (no await) after a successful transaction.
+ */
+export async function sendMovieTicketEmail(ticketData: MovieTicketData, userEmail: string) {
+    const pdfBuffer = await generateMovieTicketPDF(ticketData);
 
     await sendEmail(
         userEmail,
@@ -59,23 +63,27 @@ export async function sendMovieTicketEmail(ticketData: MovieTicketData, userEmai
     );
 }
 
-/**
- * Generates a PDF ticket and sends it via email for a concert booking.
- * This should be called fire-and-forget (no await) after a successful transaction.
- */
-export async function sendConcertTicketEmail(ticketData: ConcertTicketData, userEmail: string) {
+export async function generateConcertTicketPDF(ticketData: ConcertTicketData) {
     const [qrCodeBase64, concertImageBase64] = await Promise.all([
         QRCode.toDataURL(JSON.stringify({ id: ticketData.booking_id })),
         fetchImageAsBase64(ticketData.concert.image),
     ]);
 
-    const pdfBuffer = await renderToBuffer(
+    return await renderToBuffer(
         <ConcertTicketPDF
             ticket={ticketData}
             qrCodeBase64={qrCodeBase64}
             concertImageBase64={concertImageBase64}
         />
     );
+}
+
+/**
+ * Generates a PDF ticket and sends it via email for a concert booking.
+ * This should be called fire-and-forget (no await) after a successful transaction.
+ */
+export async function sendConcertTicketEmail(ticketData: ConcertTicketData, userEmail: string) {
+    const pdfBuffer = await generateConcertTicketPDF(ticketData);
 
     await sendEmail(
         userEmail,

@@ -35,6 +35,14 @@ type UserHistoryProps = {
 };
 
 function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistoryProps) {
+    function downloadMovieTicket(bookingId: string) {
+        window.location.href = `/api/tickets/movie/${bookingId}/download`;
+    }
+
+    function downloadConcertTicket(bookingId: string) {
+        window.location.href = `/api/tickets/concerts/${bookingId}/download`;
+    }
+
     return (
         <div className="flex mt-6 flex-row items-center flex-wrap">
             {movieTickets.length > 0 &&
@@ -52,7 +60,12 @@ function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistory
                         <div className="mt-1 font-bold">Total : &#8377; {ticket.amount}</div>
                         {ticket.status !== 'cancelled' && ticket.status !== 'expired' ?
                             <div className="flex mt-2 justify-between items-center">
-                                <button className="bg-blue-400 hover:bg-blue-500 cursor-pointer p-1 px-3 text-white rounded-full mr-2">Download Ticket</button>
+                                <a
+                                    href={`/api/tickets/movie/${ticket.booking_id}/download`}
+                                    className="bg-blue-400 hover:bg-blue-500 cursor-pointer p-1 px-3 text-white rounded-full mr-2"
+                                >
+                                    Download Ticket
+                                </a>
                                 <button className="bg-red-400 hover:bg-red-500 cursor-pointer p-1 px-3 text-white rounded-full">Cancel Ticket</button>
                             </div>
                             :
@@ -77,7 +90,12 @@ function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistory
                         <div className="mt-1 font-bold">Total : &#8377; {ticket.amount}</div>
                         {ticket.status !== 'cancelled' && ticket.status !== 'expired' ?
                             <div className="flex mt-2 justify-between items-center">
-                                <button className="bg-blue-400 hover:bg-blue-500 cursor-pointer p-1 px-3 text-white rounded-full mr-2">Download Ticket</button>
+                                <a
+                                    href={`/api/tickets/concerts/${ticket.booking_id}/download`}
+                                    className="bg-blue-400 hover:bg-blue-500 cursor-pointer p-1 px-3 text-white rounded-full mr-2"
+                                >
+                                    Download Ticket
+                                </a>
                                 <button className="bg-red-400 hover:bg-red-500 cursor-pointer p-1 px-3 text-white rounded-full">Cancel Ticket</button>
                             </div>
                             :

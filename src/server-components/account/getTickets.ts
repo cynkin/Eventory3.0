@@ -19,7 +19,7 @@ export type MovieTicket = {
 };
 
 export type ConcertTicket = {
-    id: string;
+    booking_id: string;
     amount: number;
     seats: number;
     time: string;
@@ -34,7 +34,7 @@ export type ConcertTicket = {
 };
 
 export type TrainTicket = {
-    id: string;
+    booking_id: string;
     amount: number;
     title: string;
     trainId: number;
@@ -148,7 +148,7 @@ export async function getUserTickets(userId: string) {
     }));
 
     const concerts: ConcertTicket[] = concertTickets.map((t) => ({
-        id: t.id,
+        booking_id: t.id,
         amount: t.amount,
         seats: t.seats,
         time: t.concert_shows.time,
@@ -163,7 +163,7 @@ export async function getUserTickets(userId: string) {
     }));
 
     const trains: TrainTicket[] = trainTickets.map((t) => ({
-        id: t.id,
+        booking_id: t.id,
         amount: t.amount,
         title: t.trains.title,
         trainId: t.trains.train_id,
