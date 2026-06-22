@@ -155,17 +155,6 @@ export const {
                         token.pic = updated_user.pic;
                     }
                 }
-            } else if (!user && token.id) {
-                // On every normal request (page load, refresh, session fetch):
-                // Sync balance from DB so the JWT never goes stale
-                const freshUser = await prisma.users.findUnique({
-                    where: { id: token.id as string },
-                    select: { balance: true },
-                });
-
-                if (freshUser) {
-                    token.balance = Number(freshUser.balance);
-                }
             }
 
             return token;
