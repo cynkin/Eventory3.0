@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     try {
         const movie = await prisma.movies.create({
             data: {
+                id: crypto.randomUUID(),
                 title: title.trim(),
                 description,
                 ageRating,
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
                 genres: genres ?? [],
                 image,
                 commission: Number(commission),
-                users: { connect: { id: session.user.id } },
+                vendor_id: session.user.id,
             },
         });
         return NextResponse.json({ success: true, id: movie.id });

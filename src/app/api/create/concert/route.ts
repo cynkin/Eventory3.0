@@ -20,8 +20,10 @@ export async function POST(req: NextRequest) {
     );
 
     try {
+        const concertId = crypto.randomUUID();
         const concert = await prisma.concerts.create({
             data: {
+                id: concertId,
                 title: title.trim(),
                 description,
                 ageRating,
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
                 image,
                 start_date: sorted[0].date,
                 end_date: sorted[sorted.length - 1].date,
-                users: { connect: { id: session.user.id } },
+                vendor_id: session.user.id,
             },
         });
 
@@ -41,11 +43,12 @@ export async function POST(req: NextRequest) {
             sorted.map((s) =>
                 prisma.concert_shows.create({
                     data: {
+                        id: crypto.randomUUID(),
                         date: s.date,
                         time: s.time,
                         location: s.location,
                         seats: Number(seats),
-                        concerts: { connect: { id: concert.id } },
+                        concert_id: concert.id,
                     },
                 })
             )

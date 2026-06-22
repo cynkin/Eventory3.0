@@ -22,13 +22,14 @@ export async function POST(req: NextRequest) {
     try {
         const train = await prisma.trains.create({
             data: {
+                id: crypto.randomUUID(),
                 title,
                 train_id: Number(trainId),
                 compartments: Number(compartments),
                 stations,
                 additional: Number(additional ?? 0),
                 seatLayout: layout,
-                users: { connect: { id: session.user.id } },
+                vendor_id: session.user.id,
             },
         });
         return NextResponse.json({ success: true, id: train.id });

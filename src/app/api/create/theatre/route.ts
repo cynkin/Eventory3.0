@@ -16,10 +16,11 @@ export async function POST(req: NextRequest) {
     try {
         const theatre = await prisma.theatres.create({
             data: {
+                id: crypto.randomUUID(),
                 location,
                 seatLayout: seatLayout.layout ?? seatLayout,
-                movies: { connect: { id: movieId } },
-                users: { connect: { id: session.user.id } },
+                movie_id: movieId,
+                vendor_id: session.user.id,
             },
         });
         return NextResponse.json({ success: true, id: theatre.id });
