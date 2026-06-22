@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type {
     MovieTicket,
     ConcertTicket,
@@ -35,12 +36,26 @@ type UserHistoryProps = {
 };
 
 function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistoryProps) {
-    function downloadMovieTicket(bookingId: string) {
-        window.location.href = `/api/tickets/movie/${bookingId}/download`;
-    }
+    const router = useRouter();
+    const [cancelling, setCancelling] = useState<string | null>(null);
 
-    function downloadConcertTicket(bookingId: string) {
-        window.location.href = `/api/tickets/concerts/${bookingId}/download`;
+    async function cancelTicket(bookingId: string, type: "movie" | "concert" | "train") {
+        if (!confirm("Cancel this ticket? The amount will be refunded to your balance.")) return;
+        setCancelling(bookingId);
+        try {
+            const res = await fetch("/api/tickets/cancel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bookingId, type }),
+            });
+            if (res.ok) router.refresh();
+            else {
+                const { error } = await res.json();
+                alert(error ?? "Cancellation failed");
+            }
+        } finally {
+            setCancelling(null);
+        }
     }
 
     return (
@@ -66,7 +81,13 @@ function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistory
                                 >
                                     Download Ticket
                                 </a>
-                                <button className="bg-red-400 hover:bg-red-500 cursor-pointer p-1 px-3 text-white rounded-full">Cancel Ticket</button>
+                                <button
+                                    disabled={cancelling === ticket.booking_id}
+                                    onClick={() => cancelTicket(ticket.booking_id, "movie")}
+                                    className="bg-red-400 hover:bg-red-500 disabled:opacity-50 cursor-pointer p-1 px-3 text-white rounded-full"
+                                >
+                                    {cancelling === ticket.booking_id ? "Cancelling..." : "Cancel Ticket"}
+                                </button>
                             </div>
                             :
                             <div className="h-9"></div>
@@ -96,7 +117,13 @@ function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistory
                                 >
                                     Download Ticket
                                 </a>
-                                <button className="bg-red-400 hover:bg-red-500 cursor-pointer p-1 px-3 text-white rounded-full">Cancel Ticket</button>
+                                <button
+                                    disabled={cancelling === ticket.booking_id}
+                                    onClick={() => cancelTicket(ticket.booking_id, "concert")}
+                                    className="bg-red-400 hover:bg-red-500 disabled:opacity-50 cursor-pointer p-1 px-3 text-white rounded-full"
+                                >
+                                    {cancelling === ticket.booking_id ? "Cancelling..." : "Cancel Ticket"}
+                                </button>
                             </div>
                             :
                             <div className="h-9"></div>
@@ -122,7 +149,13 @@ function UserHistory({ movieTickets, concertTickets, trainTickets }: UserHistory
                         {ticket.status !== 'cancelled' && ticket.status !== 'expired' ?
                             <div className="flex mt-2 justify-between items-center">
                                 <button className="bg-blue-400 hover:bg-blue-500 cursor-pointer p-1 px-3 text-white rounded-full mr-2">Download Ticket</button>
-                                <button className="bg-red-400 hover:bg-red-500 cursor-pointer p-1 px-3 text-white rounded-full">Cancel Ticket</button>
+                                <button
+                                    disabled={cancelling === ticket.booking_id}
+                                    onClick={() => cancelTicket(ticket.booking_id, "train")}
+                                    className="bg-red-400 hover:bg-red-500 disabled:opacity-50 cursor-pointer p-1 px-3 text-white rounded-full"
+                                >
+                                    {cancelling === ticket.booking_id ? "Cancelling..." : "Cancel Ticket"}
+                                </button>
                             </div>
                             :
                             <div className="h-9"></div>
