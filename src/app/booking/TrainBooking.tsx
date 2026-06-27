@@ -25,13 +25,29 @@ export default function TrainBooking({ train }: { train: Train }) {
     const total = cost * passengers.length;
 
     function selectStation(station: Station) {
+        // Clicking an already-selected station deselects it
+        if (from?.location === station.location) {
+            setFrom(null);
+            setTo(null);
+            setStep("from");
+            setError(null);
+            return;
+        }
+        if (to?.location === station.location) {
+            setTo(null);
+            setStep("to");
+            setError(null);
+            return;
+        }
+
         if (step === "from") {
             setFrom(station);
             setTo(null);
             setStep("to");
+            setError(null);
         } else {
-            const fromIdx = stations.indexOf(from!);
-            const toIdx = stations.indexOf(station);
+            const fromIdx = stations.findIndex((s) => s.location === from!.location);
+            const toIdx = stations.findIndex((s) => s.location === station.location);
             if (toIdx <= fromIdx) {
                 setError("'To' must come after 'From'");
                 return;

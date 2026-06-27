@@ -28,7 +28,7 @@ export function ConcertCard({
     return (
         <Link
             href={`/booking?q=concert&id=${id}`}
-            className="border rounded-2xl mb-1 mr-2 border-b-white w-96 flex flex-col overflow-hidden hover:shadow-md transition"
+            className="border rounded-2xl mb-1 mr-2 border-b-white w-96 shrink-0 flex flex-col overflow-hidden hover:shadow-md transition"
         >
             <img
                 src={image}
