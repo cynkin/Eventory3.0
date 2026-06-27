@@ -1,5 +1,11 @@
-import { auth } from "@/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/auth.config";
 import { NextResponse } from "next/server";
+
+// Next.js 16 renamed the "middleware" convention to "proxy".
+// Build a lightweight, edge-safe auth instance from the split config.
+// (Importing from @/auth would pull bcrypt/crypto into the Edge Runtime.)
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
     const { pathname } = req.nextUrl;
