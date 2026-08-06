@@ -1,9 +1,9 @@
 // src/auth.ts
 import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/db";
 import { comparePassword } from "@/lib/utils/hash";
+import { authConfig } from "@/auth.config";
 
 export const {
     handlers,
@@ -11,6 +11,7 @@ export const {
     signIn,
     signOut,
 } = NextAuth({
+    ...authConfig,
 
     providers: [
         // -----------------------------
@@ -56,24 +57,13 @@ export const {
             },
         }),
 
-        // -----------------------------
-        // GOOGLE OAUTH
-        // -----------------------------
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        }),
+        // Google OAuth lives in auth.config.ts (edge-safe); spread the rest here.
+        ...authConfig.providers,
     ],
 
-    pages: {
-        signIn: "/auth/email",
-    },
-
-    session: {
-        strategy: "jwt",
-    },
-
     callbacks: {
+        ...authConfig.callbacks,
+
         async signIn({ user, account, profile}) {
             try {
                 if (account?.provider === "google") {
@@ -155,34 +145,12 @@ export const {
                         token.pic = updated_user.pic;
                     }
                 }
-            } else if (!user && token.id) {
-                // On every normal request (page load, refresh, session fetch):
-                // Sync balance from DB so the JWT never goes stale
-                const freshUser = await prisma.users.findUnique({
-                    where: { id: token.id as string },
-                    select: { balance: true },
-                });
-
-                if (freshUser) {
-                    token.balance = Number(freshUser.balance);
-                }
             }
 
             return token;
         },
 
-        async session({ session, token }) {
-            if (session.user) {
-                session.user.id = token.id as string;
-                session.user.name = token.name as string;
-                session.user.email = token.email as string;
-                session.user.role = token.role as string;
-                session.user.balance = token.balance as number;
-                session.user.pic = token.pic as string;
-                session.user.isGoogle = token.isGoogle as boolean;
-            }
-            return session;
-        },
+        // session callback is inherited from authConfig (edge-safe, maps token → session).
     },
 
     secret: process.env.NEXTAUTH_SECRET,

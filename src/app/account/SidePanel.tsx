@@ -2,7 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import Spinner from "@/components/ui/Spinner";
 import Link from "next/link";
-import {UserRound, ChevronRight, Settings, Tickets, MessageCircleQuestion} from "lucide-react";
+import {UserRound, ChevronRight, Settings, Tickets, MessageCircleQuestion, PlusCircle} from "lucide-react";
 import { usePathname } from 'next/navigation'
 
 function capitalize(str: string) {
@@ -71,6 +71,27 @@ export default function SidePanel() {
                 </div>
                 <ChevronRight className=""/>
             </Link>
+
+            {session.user.role === 'vendor' && (
+                <div className="mt-4 border border-gray-300 rounded-xl p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                        <PlusCircle className="w-4 h-4" />
+                        <span className="font-semibold text-sm">Create New</span>
+                    </div>
+                    <div className="flex flex-col gap-1 pl-1">
+                        {[
+                            { href: "/createForm/movie", label: "Movie" },
+                            { href: "/createForm/theatre", label: "Theatre" },
+                            { href: "/createForm/concert", label: "Concert" },
+                            { href: "/createForm/train", label: "Train" },
+                        ].map(({ href, label }) => (
+                            <Link key={href} href={href} className="text-sm text-blue-700 hover:underline py-0.5">
+                                + Add {label}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <Link href="/account/settings" className={`p-3 ${pathname.endsWith("/settings") ? "border-2 border-blue-600" : " border border-gray-300"} flex items-center justify-center text-left rounded-xl mt-4`}>
                 <Settings className=""/>

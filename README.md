@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Eventory v3.0
+
+A full-stack event booking platform built with **Next.js 16 (App Router)**, **Prisma + PostgreSQL**, **NextAuth v5**, and a **standalone Go WebSocket server** for real-time seat holds.
+
+## Architecture
+
+| Concern | Technology |
+|---|---|
+| Web app | Next.js 16 (App Router, server components) |
+| Auth | NextAuth v5 — credentials + Google OAuth |
+| Database | PostgreSQL via Prisma |
+| Payments | In-app credit balance, `$transaction` atomic settlement |
+| Real-time seats | Go WebSocket server (`server-go/`) |
+| PDF tickets | `@react-pdf/renderer` |
+| Email | Nodemailer |
+
+The Go server owns **only** the real-time layer: WebSocket connections, per-seat in-memory holds with a 60-second TTL auto-release, and room broadcasts. When a user confirms a booking, Go calls a Next.js internal API route (protected by `X-Internal-Secret`) that runs the Prisma `$transaction` — debiting the buyer and crediting both the movie vendor and theatre vendor by commission split — then Go broadcasts `seat:booked` to the room.
 
 ## Getting Started
 
-First, run the development server:
+### 1. Environment variables
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Create a `.env` file:
+
+```env
+DATABASE_URL=postgresql://...
+NEXTAUTH_SECRET=your-secret
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+
+# Go WebSocket server
+NEXT_PUBLIC_WS_URL=ws://localhost:4000/ws
+NEXTJS_URL=http://localhost:3000
+WS_INTERNAL_SECRET=some-long-random-secret
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Start the Next.js app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Start the Go WebSocket server
 
-## Learn More
+```bash
+cd server-go
+go mod tidy
+go run main.go
+```
 
-To learn more about Next.js, take a look at the following resources:
+The Go server listens on `:4000` by default. Set `PORT`, `NEXTJS_URL`, and `WS_INTERNAL_SECRET` environment variables to override.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roles
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Role | Can do |
+|---|---|
+| `user` | Browse events, book tickets, cancel, download PDF |
+| `vendor` | All user actions + create movies/theatres/concerts/trains |
+| `admin` | All actions + user management (suspend/unsuspend/delete), stats dashboard |
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/
+    (main)/         # Browse: home, movie/concert/train detail pages
+    account/        # Profile, booking history, ticket cancellation
+    admin/          # Admin panel (stats + user management)
+    auth/           # Login / register
+    booking/        # Seat selection (movie/concert) + train booking
+    createForm/     # Vendor forms: create movie, theatre, concert, train
+    api/            # All API routes
+  components/
+    ui/             # SimpleCarousel, shared UI
+  lib/
+    email/          # Nodemailer + PDF ticket generation
+    main/           # Server-side data fetching (getData.ts)
+server-go/          # Go WebSocket server (main.go)
+```

@@ -187,6 +187,13 @@ export async function getMovieShowDetails(id: string) {
     };
 }
 
+export async function getTrainDetails(id: string) {
+    if (!isUUID(id)) return null;
+    const train = await prisma.trains.findUnique({ where: { id } });
+    if (!train) return null;
+    return train;
+}
+
 export async function getConcertShowDetails(id: string) {
     if (!isUUID(id)) return null;
     const show = await prisma.concert_shows.findUnique({

@@ -10,8 +10,8 @@ export function TrainCard({ id, title, trainId, stations }: TrainCardDTO) {
 
     return (
         <Link
-            href={`/train-booking?q=train&id=${id}`}
-            className="border rounded-2xl w-[320px] p-4 hover:shadow-md transition"
+            href={`/booking?q=train&id=${id}`}
+            className="border rounded-2xl w-[320px] shrink-0 p-4 hover:shadow-md transition"
         >
             <div className="text-lg font-medium mb-1">{title}</div>
 

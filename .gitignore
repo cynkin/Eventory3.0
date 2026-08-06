@@ -44,4 +44,6 @@ next-env.d.ts
 
 .idea/
 
-/src/generated/prisma
+# Go build artifacts
+/server-go/*.exe
+/server-go/eventory-ws
